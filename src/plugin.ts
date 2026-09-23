@@ -18,6 +18,7 @@ import { v0Collector } from "./v0.js"
 import { veniceCollector } from "./venice.js"
 import { hyperCollector } from "./hyper.js"
 import { huggingFaceCollector } from "./huggingface.js"
+import { neuralwattCollector } from "./neuralwatt.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -65,6 +66,8 @@ export default Plugin.define({
     const hyperAccount = selectedId(ctx.options.hyperAccountLabel)
     const hfId = selectedId(ctx.options.huggingFaceConnectionId)
     const hfAccount = selectedId(ctx.options.huggingFaceAccountLabel)
+    const neuralwattId = selectedId(ctx.options.neuralwattConnectionId)
+    const neuralwattAccount = selectedId(ctx.options.neuralwattAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -141,6 +144,9 @@ export default Plugin.define({
       ctx.options.enableHuggingFace === true && hfId && hfAccount ? huggingFaceCollector({
         account: hfAccount, apiKey: () => selectedKey("huggingface", hfId),
       }) : ctx.options.enableHuggingFace === true ? unconfiguredCollector("huggingface", hfAccount || "unselected") : unsupportedCollector("huggingface", hfAccount || "unselected"),
+      ctx.options.enableNeuralwatt === true && neuralwattId && neuralwattAccount ? neuralwattCollector({
+        account: neuralwattAccount, apiKey: () => selectedKey("neuralwatt", neuralwattId),
+      }) : ctx.options.enableNeuralwatt === true ? unconfiguredCollector("neuralwatt", neuralwattAccount || "unselected") : unsupportedCollector("neuralwatt", neuralwattAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),

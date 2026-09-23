@@ -63,7 +63,7 @@
     {"id":"deepgram","source":"Deepgram/","strategies":["api"],"auth":"key/optional project","fields":"hours/tokens/characters/requests","platform":"portable HTTP"},
     {"id":"poe","source":"Poe/","strategies":["api"],"auth":"API key","fields":"points/history","platform":"portable HTTP; OpenCode OAuth-issued key expiry conditional","supported":["api"],"fixture":"test/poe.test.ts"},
     {"id":"chutes","source":"Chutes/","strategies":["subscription-api","quota-api"],"auth":"API key","fields":"rolling/monthly/PAYG allowances","platform":"portable HTTP; quota-list enrichment separately pending","supported":["subscription-api"],"fixture":"test/chutes.test.ts"},
-    {"id":"neuralwatt","source":"NeuralWatt/","strategies":["api"],"auth":"API key","fields":"kWh subscription/prepaid USD/key allowance","platform":"portable HTTP"},
+    {"id":"neuralwatt","source":"NeuralWatt/","strategies":["api"],"auth":"API key","fields":"kWh subscription/prepaid USD/key allowance","platform":"portable HTTP; uses catalog-pinned API base; endpoint permission conditional","supported":["api"],"fixture":"test/neuralwatt.test.ts"},
     {"id":"helmcode","source":"Helmcode/","strategies":["web"],"auth":"Chrome/manual tenant session","fields":"model quotas/prepaid balance","platform":"browser import host dependent"},
     {"id":"clawrouter","source":"ClawRouter/","strategies":["api"],"auth":"key/optional gateway URL","fields":"key budget/spend/requests/tokens/routed breakdown","platform":"configured gateway"},
     {"id":"longcat","source":"LongCat/","strategies":["web"],"auth":"browser/manual cookie","fields":"token pack/fuel balance","platform":"browser import host dependent"},
