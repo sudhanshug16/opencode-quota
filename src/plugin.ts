@@ -22,6 +22,7 @@ import { neuralwattCollector } from "./neuralwatt.js"
 import { syntheticCollector } from "./synthetic.js"
 import { miniMaxCollector } from "./minimax.js"
 import { kiloCollector } from "./kilo.js"
+import { alibabaCollector } from "./alibaba.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -79,6 +80,9 @@ export default Plugin.define({
     const kiloId = selectedId(ctx.options.kiloConnectionId)
     const kiloAccount = selectedId(ctx.options.kiloAccountLabel)
     const kiloOrganization = selectedId(ctx.options.kiloOrganizationId)
+    const alibabaId = selectedId(ctx.options.alibabaConnectionId)
+    const alibabaAccount = selectedId(ctx.options.alibabaAccountLabel)
+    const alibabaRegion = ctx.options.alibabaRegion === "intl" || ctx.options.alibabaRegion === "cn" ? ctx.options.alibabaRegion : undefined
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -169,6 +173,9 @@ export default Plugin.define({
       ctx.options.enableKilo === true && kiloId && kiloAccount && (!kiloOrganization || /^[a-zA-Z0-9_-]{1,120}$/.test(kiloOrganization)) ? kiloCollector({
         account: kiloAccount, organization: kiloOrganization || undefined, apiKey: () => selectedKey("kilo", kiloId),
       }) : ctx.options.enableKilo === true ? unconfiguredCollector("kilo", kiloAccount || "unselected") : unsupportedCollector("kilo", kiloAccount || "unselected"),
+      ctx.options.enableAlibaba === true && alibabaId && alibabaAccount && alibabaRegion ? alibabaCollector({
+        account: alibabaAccount, region: alibabaRegion, apiKey: () => selectedKey(alibabaRegion === "cn" ? "alibaba-coding-plan-cn" : "alibaba-coding-plan", alibabaId),
+      }) : ctx.options.enableAlibaba === true ? unconfiguredCollector("alibaba", alibabaAccount || "unselected") : unsupportedCollector("alibaba", alibabaAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
