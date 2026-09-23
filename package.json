@@ -34,7 +34,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/deepseek.ts src/moonshot.ts src/zai.ts src/fireworks.ts src/codex.ts src/copilot.ts src/poe.ts src/deepinfra.ts src/clinepass.ts src/kimi.ts src/chutes.ts src/v0.ts src/venice.ts src/hyper.ts src/huggingface.ts src/neuralwatt.ts src/synthetic.ts src/minimax.ts src/kilo.ts src/alibaba.ts src/plugin.ts src/rpc.ts --root src --outdir dist --target=node --format=esm --external @opencode/plugin",
+    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/deepseek.ts src/moonshot.ts src/zai.ts src/fireworks.ts src/codex.ts src/copilot.ts src/poe.ts src/deepinfra.ts src/clinepass.ts src/kimi.ts src/chutes.ts src/v0.ts src/venice.ts src/hyper.ts src/huggingface.ts src/neuralwatt.ts src/synthetic.ts src/minimax.ts src/kilo.ts src/alibaba.ts src/quota-command.ts src/plugin.ts src/rpc.ts --root src --outdir dist --target=node --format=esm --external @opencode/plugin",
     "check": "bun run typecheck && bun test && bun run build"
   },
   "dependencies": {

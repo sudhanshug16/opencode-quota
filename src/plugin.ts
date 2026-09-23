@@ -23,6 +23,7 @@ import { syntheticCollector } from "./synthetic.js"
 import { miniMaxCollector } from "./minimax.js"
 import { kiloCollector } from "./kilo.js"
 import { alibabaCollector } from "./alibaba.js"
+import { quotaReport } from "./quota-command.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -30,6 +31,7 @@ export default Plugin.define({
   async setup(ctx) {
     const enabled = ctx.options.enableGo === true
     const account = typeof ctx.options.accountLabel === "string" && ctx.options.accountLabel.trim() ? ctx.options.accountLabel.trim() : "active"
+    const goConnectionId = typeof ctx.options.goConnectionId === "string" ? ctx.options.goConnectionId.trim() : ""
     const openRouterAccount = typeof ctx.options.openRouterAccountLabel === "string" ? ctx.options.openRouterAccountLabel.trim() : ""
     const deepSeekAccount = typeof ctx.options.deepSeekAccountLabel === "string" ? ctx.options.deepSeekAccountLabel.trim() : ""
     const moonshotAccount = typeof ctx.options.moonshotAccountLabel === "string" ? ctx.options.moonshotAccountLabel.trim() : ""
@@ -89,12 +91,12 @@ export default Plugin.define({
       const credential = await ctx.integration.connection.resolve(connection)
       return credential?.type === "key" ? credential.key : undefined
     }
-    const reader = new QuotaReader([
+    const collectors = [
       enabled ? goCollector({
         account,
         apiKey: async () => {
           const connection = await ctx.integration.connection.active("opencode-go")
-          if (!connection) return undefined
+          if (!connection || connection.type !== "credential" || (goConnectionId && connection.id !== goConnectionId)) return undefined
           const credential = await ctx.integration.connection.resolve(connection)
           return credential?.type === "key" ? credential.key : undefined
         },
@@ -177,10 +179,57 @@ export default Plugin.define({
       ctx.options.enableAlibaba === true && alibabaId && alibabaAccount && alibabaRegion ? alibabaCollector({
         account: alibabaAccount, region: alibabaRegion, apiKey: () => selectedKey(alibabaRegion === "cn" ? "alibaba-coding-plan-cn" : "alibaba-coding-plan", alibabaId),
       }) : ctx.options.enableAlibaba === true ? unconfiguredCollector("alibaba", alibabaAccount || "unselected") : unsupportedCollector("alibaba", alibabaAccount || "unselected"),
-    ])
+    ]
+    const reader = new QuotaReader(collectors)
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
     })
-    return async () => { reader.close(); await registration.dispose() }
+    const command = await ctx.command.transform((editor) => {
+      editor.add({
+        name: "quota",
+        description: "Show quota and usage for connected providers",
+        execute: async ({ sessionID }) => {
+          let accounts: { integration: string; label: string; connectionId?: string }[] = []
+          let discoveryError: string | undefined
+          try {
+            const integrations = await ctx.integration.list()
+            accounts = integrations.data.flatMap((integration) => integration.connections
+              .map((connection) => connection.type === "credential"
+                ? { integration: integration.id, label: connection.label, connectionId: connection.id }
+                : { integration: integration.id, label: `environment ${connection.name}` }))
+          } catch (error) {
+            discoveryError = error instanceof Error ? error.name : "Error"
+          }
+          const mappings: [string, string, string][] = [
+              ["openrouter", openRouterId, openRouterAccount], ["deepseek", deepSeekId, deepSeekAccount], ["moonshotai", moonshotId, moonshotAccount],
+              ["zai-coding-plan", zaiId, zaiAccount], ["fireworks-ai", fireworksId, fireworksAccount], ["openai", codexId, codexAccount],
+              ["github-copilot", copilotId, copilotAccount], ["poe", poeId, poeAccount], ["deepinfra", deepInfraId, deepInfraAccount],
+              ["cline-pass", clinePassId, clinePassAccount], [kimiRegion === "china" ? "kimi-code-plan-cn" : "kimi-code-plan-global", kimiId, kimiAccount],
+              ["chutes", chutesId, chutesAccount], ["v0", v0Id, v0Account], ["venice", veniceId, veniceAccount], ["hyper", hyperId, hyperAccount],
+              ["huggingface", hfId, hfAccount], ["neuralwatt", neuralwattId, neuralwattAccount], ["synthetic", syntheticId, syntheticAccount],
+              [miniMaxRegion === "cn" ? "minimax-cn-coding-plan" : "minimax-coding-plan", miniMaxId, miniMaxAccount], ["kilo", kiloId, kiloAccount],
+              [alibabaRegion === "cn" ? "alibaba-coding-plan-cn" : "alibaba-coding-plan", alibabaId, alibabaAccount],
+          ]
+          const configured = [
+            ...(enabled && goConnectionId ? [{ integration: "opencode-go", connectionId: goConnectionId, account, collect: async () => {
+              const connection = await ctx.integration.connection.active("opencode-go")
+              if (connection?.type !== "credential" || connection.id !== goConnectionId || connection.method !== "key") {
+                throw new Error("selected connection is not active")
+              }
+              return collectors[0]!.collect(new AbortController().signal)
+            } }] : []),
+            ...mappings.flatMap(([integration, connectionId, label], index) => {
+            if (!connectionId || !label) return []
+            const collector = collectors[index + 2]
+            return collector ? [{ integration, connectionId, account: label, collect: () => collector.collect(new AbortController().signal) }] : []
+            }),
+          ]
+          const unsupported = new Set(["claude"])
+          const report = await quotaReport({ accounts, collectors: configured, unsupported })
+          await ctx.session.synthetic({ sessionID, text: discoveryError ? `${report}\nIntegration discovery failed (${discoveryError}); this report may be incomplete.` : report })
+        },
+      })
+    })
+    return async () => { reader.close(); await command.dispose(); await registration.dispose() }
   },
 })
