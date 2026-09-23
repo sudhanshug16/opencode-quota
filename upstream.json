@@ -13,6 +13,7 @@
     "Sources/CodexBarCore/CopilotUsageModels.swift",
     "Sources/CodexBarCore/Resources/Plugins/poe.js",
     "Sources/CodexBarCore/Providers/DeepInfra/DeepInfraUsageFetcher.swift",
+    "Sources/CodexBarCore/Resources/Plugins/clinepass.ts",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [

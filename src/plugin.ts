@@ -11,6 +11,7 @@ import { codexCollector, selectedCodexOAuth } from "./codex.js"
 import { copilotAccess, copilotCollector } from "./copilot.js"
 import { poeCollector, selectedPoeToken } from "./poe.js"
 import { deepInfraCollector } from "./deepinfra.js"
+import { clinePassCollector } from "./clinepass.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -42,6 +43,8 @@ export default Plugin.define({
     const poeAccount = selectedId(ctx.options.poeAccountLabel)
     const deepInfraId = selectedId(ctx.options.deepInfraConnectionId)
     const deepInfraAccount = selectedId(ctx.options.deepInfraAccountLabel)
+    const clinePassId = selectedId(ctx.options.clinePassConnectionId)
+    const clinePassAccount = selectedId(ctx.options.clinePassAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -96,6 +99,9 @@ export default Plugin.define({
       ctx.options.enableDeepInfra === true && deepInfraId && deepInfraAccount ? deepInfraCollector({
         account: deepInfraAccount, apiKey: () => selectedKey("deepinfra", deepInfraId),
       }) : ctx.options.enableDeepInfra === true ? unconfiguredCollector("deepinfra", deepInfraAccount || "unselected") : unsupportedCollector("deepinfra", deepInfraAccount || "unselected"),
+      ctx.options.enableClinePass === true && clinePassId && clinePassAccount ? clinePassCollector({
+        account: clinePassAccount, apiKey: () => selectedKey("cline-pass", clinePassId),
+      }) : ctx.options.enableClinePass === true ? unconfiguredCollector("clinepass", clinePassAccount || "unselected") : unsupportedCollector("clinepass", clinePassAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
