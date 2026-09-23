@@ -1,0 +1,42 @@
+{
+  "codexBarSha": "efaee7a372139beaf93b4206c08865d750b60e7c",
+  "meaning": "Each unimplemented OpenCode-mapped acquisition route appears once. These are route dispositions, not 58 distinct missing provider capabilities. Source/auth inventory is pinned in parity.json; source-backed implementation still requires endpoint and fixture review. Stored connection ID is not permission proof.",
+  "dispositions": {
+    "storedCredentialCandidate": {
+      "meaning": "A distinct balance, quota, spend or usage fact may be obtainable using an exact selected OpenCode key or OAuth connection. Endpoint permission/audience, plan and region must be checked; no live compatibility claim.",
+      "routes": [
+        "codex:oauth-extras", "alibaba:api-fallback", "zai:model-usage-api", "zai:cn-balance-api", "minimax:api", "kilo:api", "synthetic:api", "venice:api-balance", "chutes:subscription-api", "chutes:quota-api", "neuralwatt:api", "huggingface:api", "v0:api", "hyper:api"
+      ]
+    },
+    "privilegedOrPlatformCredential": {
+      "meaning": "Distinct account billing/usage capability, but ordinary inference keys do not prove admin, management, organization, cloud-monitoring or enterprise authorization. Needs opt-in account/project/team selection and an appropriate adapter.",
+      "routes": [
+        "openai:admin-api", "openai:legacy-credit-grants", "claude:admin-api", "vertexai:google-adc-monitoring", "openrouter:management-activity", "bedrock:aws-cost-explorer", "bedrock:cloudwatch", "groq:enterprise-prometheus", "zenmux:api", "aiand:request-logs", "xai:management-api"
+      ]
+    },
+    "separateAccountSession": {
+      "meaning": "Distinct subscription, billing or console capability requires an explicitly selected cookie, browser, CLI, Oasis or console session. An OpenCode inference key is not a substitute. No live browser/CLI credentials were inspected.",
+      "routes": [
+        "claude:web-session", "opencode:web-subscription", "opencode:web-billing-fallback", "opencodego:web-console", "alibabatokenplan:web-console", "alibabatokenplan:bl-cli", "gemini:cli-oauth", "minimax:web", "kimi:web-cookie", "ollama:web-usage", "perplexity:web", "mimo:web", "sakana:web", "abacus:web", "mistral:web-admin", "deepseek:web-platform", "venice:web-subscription", "stepfun:manual-oasis-token", "stepfun:web-login", "groq:web-console", "longcat:web"
+      ]
+    },
+    "alternativeAcquisition": {
+      "meaning": "Alternate acquisition of an already implemented quota or the same provider capability through another source. Not mandatory for credential-only coverage; re-evaluate if source reports an additional distinct fact.",
+      "routes": [
+        "codex:pat", "codex:web-session", "opencodego:web-legacy", "alibaba:web-console", "kimi:cli-credential", "kilo:cli-auth-file", "mistral:web-console-fallback", "hyper:web"
+      ]
+    },
+    "auxiliaryOrNonQuota": {
+      "meaning": "Discovery/probe/local estimate rather than authoritative usage or a new quota pool. Track separately from quota coverage.",
+      "routes": ["fireworks:account-discovery", "opencodego:local-db", "ollama:api-verification", "doubao:ark-api-probe"]
+    }
+  },
+  "unresolvedAliases": {
+    "qwencloud": {"auth":"browser/manual cookie plus sec_token","decision":"mapping-unverified","needed":"Verify whether Qwen Cloud subscription and Alibaba Coding/Token Plan share account and pool; API key is not cookie auth."},
+    "factory": {"auth":"key or Factory/Droid session","decision":"mapping-unverified","needed":"Bundled Factory integration exists, but verify Droid account/product and a catalog model-provider account mapping before counting it."},
+    "antigravity": {"auth":"IDE language server, agy CLI or Google OAuth","decision":"mapping-unverified","needed":"Google model API and Antigravity IDE account entitlement are not proven equivalent; no IDE login acquisition is implied."},
+    "nous": {"auth":"Hermes login or token","decision":"mapping-unverified","needed":"No pinned OpenCode model provider/account binding; a custom provider would require explicit account identity."},
+    "replicate": {"auth":"browser/manual cookie","decision":"mapping-unverified","needed":"No pinned model-provider binding; web spend needs a separate session even if an inference integration is possible."},
+    "typesafe": {"auth":"browser/manual cookie","decision":"mapping-unverified","needed":"No pinned model-provider binding; browser credit account is separate until verified."}
+  }
+}

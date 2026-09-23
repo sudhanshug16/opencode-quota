@@ -14,6 +14,10 @@
     "Sources/CodexBarCore/Resources/Plugins/poe.js",
     "Sources/CodexBarCore/Providers/DeepInfra/DeepInfraUsageFetcher.swift",
     "Sources/CodexBarCore/Resources/Plugins/clinepass.ts",
+    "Sources/CodexBarCore/Providers/Kimi/KimiUsageFetcher.swift",
+    "Sources/CodexBarCore/Providers/Kimi/KimiUsageSnapshot.swift",
+    "Sources/CodexBarCore/Providers/Kimi/KimiModels.swift",
+    "Sources/CodexBarCore/Providers/Kimi/KimiRegion.swift",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [

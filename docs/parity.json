@@ -25,7 +25,7 @@
     {"id":"zai","source":"Zai/","strategies":["quota-api","model-usage-api","cn-balance-api"],"auth":"API token; explicit personal/team scope","fields":"Coding Plan quota/reset, model usage, optional CN balance","platform":"global/China hosts; team requires organization and project","supported":["quota-api"],"fixture":"test/zai.test.ts"},
     {"id":"minimax","source":"MiniMax/","strategies":["web","api"],"auth":"session or API token","fields":"plan quota/reset, optional billing tokens","platform":"regional hosts; cookie import host dependent"},
     {"id":"manus","source":"Manus/","strategies":["web"],"auth":"session cookie/environment","fields":"credits/account","platform":"cookie import host dependent"},
-    {"id":"kimi","source":"Kimi/","strategies":["api","web-cookie","cli-credential"],"auth":"Kimi Code key or session","fields":"five-hour/weekly quota/reset","platform":"browser/CLI host dependent"},
+    {"id":"kimi","source":"Kimi/","strategies":["api","web-cookie","cli-credential"],"auth":"Kimi Code key or session","fields":"five-hour/weekly/monthly total quota/reset","platform":"regional Code API; browser/CLI host dependent","supported":["api"],"fixture":"test/kimi.test.ts"},
     {"id":"kilo","source":"Kilo/","strategies":["api","cli-auth-file"],"auth":"token or CLI login","fields":"limits/balance/reset","platform":"CLI file host dependent"},
     {"id":"kiro","source":"Kiro/","strategies":["kiro-cli"],"auth":"logged-in kiro-cli","fields":"monthly and bonus credits","platform":"CLI host dependent"},
     {"id":"vertexai","source":"VertexAI/","strategies":["google-adc-monitoring","local-transcript"],"auth":"Google ADC, Cloud Monitoring","fields":"quota usage/limits, local cost","platform":"ADC/project scope required"},
