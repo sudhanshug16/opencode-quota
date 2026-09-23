@@ -13,6 +13,7 @@ import { poeCollector, selectedPoeToken } from "./poe.js"
 import { deepInfraCollector } from "./deepinfra.js"
 import { clinePassCollector } from "./clinepass.js"
 import { kimiCollector } from "./kimi.js"
+import { chutesCollector } from "./chutes.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -49,6 +50,8 @@ export default Plugin.define({
     const kimiId = selectedId(ctx.options.kimiConnectionId)
     const kimiAccount = selectedId(ctx.options.kimiAccountLabel)
     const kimiRegion = ctx.options.kimiRegion === "china" || ctx.options.kimiRegion === "international" ? ctx.options.kimiRegion : undefined
+    const chutesId = selectedId(ctx.options.chutesConnectionId)
+    const chutesAccount = selectedId(ctx.options.chutesAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -110,6 +113,9 @@ export default Plugin.define({
         account: kimiAccount, region: kimiRegion,
         apiKey: () => selectedKey(kimiRegion === "china" ? "kimi-code-plan-cn" : "kimi-code-plan-global", kimiId),
       }) : ctx.options.enableKimi === true ? unconfiguredCollector("kimi", kimiAccount || "unselected") : unsupportedCollector("kimi", kimiAccount || "unselected"),
+      ctx.options.enableChutes === true && chutesId && chutesAccount ? chutesCollector({
+        account: chutesAccount, apiKey: () => selectedKey("chutes", chutesId),
+      }) : ctx.options.enableChutes === true ? unconfiguredCollector("chutes", chutesAccount || "unselected") : unsupportedCollector("chutes", chutesAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),

@@ -18,6 +18,8 @@
     "Sources/CodexBarCore/Providers/Kimi/KimiUsageSnapshot.swift",
     "Sources/CodexBarCore/Providers/Kimi/KimiModels.swift",
     "Sources/CodexBarCore/Providers/Kimi/KimiRegion.swift",
+    "Sources/CodexBarCore/Providers/Chutes/ChutesUsageStats.swift",
+    "Tests/CodexBarTests/ChutesProviderTests.swift",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [
