@@ -19,5 +19,5 @@ test("every pinned provider is partitioned; only mapped routes count as OpenCode
     const provider = registry.get(item.id)
     return "supported" in provider! && provider.supported?.includes(route)
   }))
-  expect(supported).toHaveLength(8)
+  expect(supported).toHaveLength(9)
 })

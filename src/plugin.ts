@@ -8,6 +8,7 @@ import { moonshotCollector } from "./moonshot.js"
 import { zaiCollector } from "./zai.js"
 import { fireworksCollector } from "./fireworks.js"
 import { codexAccess, codexCollector } from "./codex.js"
+import { copilotAccess, copilotCollector } from "./copilot.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -33,6 +34,8 @@ export default Plugin.define({
     const codexId = selectedId(ctx.options.codexConnectionId)
     const codexAccount = selectedId(ctx.options.codexAccountLabel)
     const codexAccountId = selectedId(ctx.options.codexAccountId)
+    const copilotId = selectedId(ctx.options.copilotConnectionId)
+    const copilotAccount = selectedId(ctx.options.copilotAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -78,6 +81,14 @@ export default Plugin.define({
           return codexAccess(credential, codexAccountId)
         },
       }) : ctx.options.enableCodex === true ? unconfiguredCollector("codex", codexAccount || "unselected") : unsupportedCollector("codex", codexAccount || "unselected"),
+      ctx.options.enableCopilot === true && copilotId && copilotAccount ? copilotCollector({
+        account: copilotAccount,
+        githubToken: async () => {
+          const connection = await ctx.integration.connection.active("github-copilot")
+          if (connection?.type !== "credential" || connection.id !== copilotId || connection.method !== "oauth") return undefined
+          return copilotAccess(await ctx.integration.connection.resolve(connection))
+        },
+      }) : ctx.options.enableCopilot === true ? unconfiguredCollector("copilot", copilotAccount || "unselected") : unsupportedCollector("copilot", copilotAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
