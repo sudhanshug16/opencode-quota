@@ -14,7 +14,7 @@ function date(value: unknown): string | undefined {
   return typeof value === "string" && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : undefined
 }
 
-/** Direct Chutes subscription endpoint only; per-quota definition/enrichment is a separate acquisition route. */
+/** Direct Chutes subscription endpoint; per-quota definition/enrichment is separate. */
 export function parseChutesSubscription(value: unknown, account: string, now = new Date()): Observation | undefined {
   const body = row(value)
   if (!body) return undefined
@@ -56,6 +56,33 @@ export interface ChutesOptions {
   now?: () => Date
 }
 
+function quotaDefinitions(value: unknown): { definitions: Record<string, unknown>[]; truncated: boolean } {
+  const root = row(value)
+  const data = row(root?.data)
+  const list = Array.isArray(value) ? value : Array.isArray(root?.quotas) ? root.quotas : Array.isArray(root?.data) ? root.data : Array.isArray(data?.quotas) ? data.quotas : []
+  return { definitions: list.slice(0, 20).flatMap(item => { const definition = row(item); return definition ? [definition] : [] }), truncated: list.length > 20 }
+}
+
+/** Pinned quota-list + per-quota usage shape, preserving each chute as its own window. */
+export function parseChutesQuota(value: unknown, identifier: string): QuotaWindow | undefined {
+  const quota = row(value)
+  if (!quota) return undefined
+  const limit = finite(quota.limit ?? quota.quota)
+  const used = finite(quota.used ?? quota.usage ?? quota.requests)
+  const remaining = finite(quota.remaining)
+  if (limit === undefined || limit <= 0 || used === undefined && remaining === undefined) return undefined
+  const consumed = used ?? Math.max(0, limit - remaining!)
+  const minutes = finite(quota.window_minutes ?? quota.windowMinutes)
+  const label = typeof quota.name === "string" ? quota.name.toLowerCase() : ""
+  const kind: QuotaWindow["kind"] = label.includes("month") || minutes !== undefined && minutes >= 28 * 1440 ? "monthly" :
+    label.includes("4-hour") || minutes === 240 ? "rolling" : "other"
+  const window: QuotaWindow = { id: `quota:${identifier}`, scope: `chute:${identifier}`, kind, unit: typeof quota.unit === "string" && quota.unit.trim() ? quota.unit : "credits",
+    limit, used: consumed, remaining: remaining ?? Math.max(0, limit - consumed) }
+  const reset = date(quota.resets_at ?? quota.reset_at ?? quota.resetsAt)
+  if (reset) window.resetAt = reset
+  return window
+}
+
 export function chutesCollector(options: ChutesOptions): Collector {
   return { id: "chutes", async collect(signal) {
     const now = options.now?.() ?? new Date()
@@ -67,7 +94,42 @@ export function chutesCollector(options: ChutesOptions): Collector {
       const response = await (options.fetch ?? fetch)(URL, { method: "GET", headers: { Authorization: `Bearer ${key}`, Accept: "application/json" }, redirect: "manual", signal })
       if (response.status === 401 || response.status === 403) return unavailable(base, "auth", now)
       if (!response.ok || response.redirected) return unavailable(base, "transport", now)
-      return parseChutesSubscription(await response.json() as unknown, options.account, now) ?? unavailable(base, "invalid_response", now)
+      const payload: unknown = await response.json()
+      const direct = parseChutesSubscription(payload, options.account, now)
+      const observation: Observation = direct ?? { schemaVersion: 1, ...base, status: "available", strategy: "chutes.subscription-api",
+        observedAt: now.toISOString(), freshUntil: new Date(now.getTime() + 60_000).toISOString(), windows: [] }
+      if (observation.windows.some(window => window.id === "rolling") && observation.windows.some(window => window.id === "monthly")) return observation
+      try {
+        const listResponse = await (options.fetch ?? fetch)("https://api.chutes.ai/users/me/quotas", { method: "GET", headers: { Authorization: `Bearer ${key}`, Accept: "application/json" }, redirect: "manual", signal })
+        if (listResponse.status === 401 || listResponse.status === 403) return unavailable(base, "auth", now)
+        if (!listResponse.ok || listResponse.redirected) return direct ?? unavailable(base, "invalid_response", now)
+        const definitionsValue: unknown = await listResponse.json()
+        const { definitions, truncated } = quotaDefinitions(definitionsValue)
+        const windows: QuotaWindow[] = [...(parseChutesSubscription(definitionsValue, options.account, now)?.windows ?? [])]
+        for (const definition of definitions) {
+          const rawId = definition.chute_id ?? definition.chuteId ?? definition.id
+          if (typeof rawId !== "string" && typeof rawId !== "number") continue
+          const id = String(rawId).trim()
+          if (!id || id.length > 120 || /[\x00-\x1f]/.test(id)) continue
+          let merged = definition
+          try {
+            const usage = await (options.fetch ?? fetch)(`https://api.chutes.ai/users/me/quota_usage/${encodeURIComponent(id)}`, {
+              method: "GET", headers: { Authorization: `Bearer ${key}`, Accept: "application/json" }, redirect: "manual", signal,
+            })
+            if (usage.status === 401 || usage.status === 403) return unavailable(base, "auth", now)
+            if (usage.ok && !usage.redirected) {
+              const payload = row(await usage.json() as unknown)
+              if (payload) merged = { ...definition, ...(row(payload.data) ?? row(payload.result) ?? payload) }
+            }
+          } catch { /* use definition if it contains valid usage */ }
+          const window = parseChutesQuota(merged, id)
+          if (window) windows.push(window)
+        }
+        if (windows.length) observation.windows = [...observation.windows, ...windows.filter(window =>
+          !observation.windows.some(existing => existing.kind === window.kind && (window.kind === "monthly" || window.kind === "rolling")))]
+        if (truncated) observation.serviceStatus = `${observation.serviceStatus ? `${observation.serviceStatus}; ` : ""}quota-list-partial`
+      } catch { /* quota fallback is best-effort */ }
+      return direct || observation.windows.length ? observation : unavailable(base, "invalid_response", now)
     } catch { return unavailable(base, signal.aborted ? "timeout" : "transport", now) }
   } }
 }
