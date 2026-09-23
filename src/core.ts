@@ -11,6 +11,25 @@ export interface QuotaWindow {
   remaining?: number
   resetAt?: string
   expiresAt?: string
+  /** Whether the source reports a percentage, a count, currency or time. */
+  scope?: string
+}
+
+export interface UsageAmount {
+  id: string
+  unit: string
+  amount: number
+  /** Local accounting is never presented as an authoritative server quota. */
+  authority: "provider" | "local"
+  period?: string
+  currency?: string
+}
+
+export interface CreditBalance {
+  id: string
+  amount: number
+  unit: string
+  expiresAt?: string
 }
 
 export interface Observation {
@@ -25,6 +44,12 @@ export interface Observation {
   freshUntil: string
   source: string
   windows: readonly QuotaWindow[]
+  usage?: readonly UsageAmount[]
+  credits?: readonly CreditBalance[]
+  /** Provider-reported service state, distinct from collector availability. */
+  serviceStatus?: string
+  /** Identifies the selected acquisition strategy, not an inferred route. */
+  strategy?: string
   reason?: "not_configured" | "auth" | "transport" | "timeout" | "invalid_response" | "unsupported"
 }
 

@@ -11,5 +11,10 @@
     "Sources/CodexBarCore/Providers/Codex/CodexOAuth/CodexOAuthUsageFetcher.swift",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
-  "note": "Reviewed Go API path and whole-percent interpretation; source was not vendored. Review changes before advancing this pin."
+  "reviewedPrefixes": [
+    "Sources/CodexBarCore/Providers/",
+    "Sources/CodexBarCore/Resources/Plugins/"
+  ],
+  "parityManifest": "docs/parity.json",
+  "note": "Registry and strategy inventory pinned at 81 first-party providers. Only supported strategies with fixture tests count as ported; review source, fixtures and license before advancing this pin."
 }
