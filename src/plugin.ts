@@ -15,6 +15,8 @@ import { clinePassCollector } from "./clinepass.js"
 import { kimiCollector } from "./kimi.js"
 import { chutesCollector } from "./chutes.js"
 import { v0Collector } from "./v0.js"
+import { veniceCollector } from "./venice.js"
+import { hyperCollector } from "./hyper.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -56,6 +58,10 @@ export default Plugin.define({
     const v0Id = selectedId(ctx.options.v0ConnectionId)
     const v0Account = selectedId(ctx.options.v0AccountLabel)
     const v0Scope = selectedId(ctx.options.v0Scope)
+    const veniceId = selectedId(ctx.options.veniceConnectionId)
+    const veniceAccount = selectedId(ctx.options.veniceAccountLabel)
+    const hyperId = selectedId(ctx.options.hyperConnectionId)
+    const hyperAccount = selectedId(ctx.options.hyperAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -123,6 +129,12 @@ export default Plugin.define({
       ctx.options.enableV0 === true && v0Id && v0Account && (!v0Scope || v0Scope.length <= 120 && !/[\r\n]/.test(v0Scope)) ? v0Collector({
         account: v0Account, scope: v0Scope || undefined, apiKey: () => selectedKey("v0", v0Id),
       }) : ctx.options.enableV0 === true ? unconfiguredCollector("v0", v0Account || "unselected") : unsupportedCollector("v0", v0Account || "unselected"),
+      ctx.options.enableVenice === true && veniceId && veniceAccount ? veniceCollector({
+        account: veniceAccount, apiKey: () => selectedKey("venice", veniceId),
+      }) : ctx.options.enableVenice === true ? unconfiguredCollector("venice", veniceAccount || "unselected") : unsupportedCollector("venice", veniceAccount || "unselected"),
+      ctx.options.enableHyper === true && hyperId && hyperAccount ? hyperCollector({
+        account: hyperAccount, apiKey: () => selectedKey("hyper", hyperId),
+      }) : ctx.options.enableHyper === true ? unconfiguredCollector("hyper", hyperAccount || "unselected") : unsupportedCollector("hyper", hyperAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),

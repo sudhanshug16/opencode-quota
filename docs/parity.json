@@ -50,7 +50,7 @@
     {"id":"deepseek","source":"DeepSeek/","strategies":["api-balance","web-platform"],"auth":"API key or browser session","fields":"paid/granted balance; optional model spend","platform":"browser import host dependent","supported":["api-balance"],"fixture":"test/deepseek.test.ts"},
     {"id":"deepinfra","source":"DeepInfra/","strategies":["api"],"auth":"API key","fields":"balance/spend/limit/suspension","platform":"portable HTTP; billing key permission conditional","supported":["api"],"fixture":"test/deepinfra.test.ts"},
     {"id":"codebuff","source":"Codebuff/","strategies":["api","login-file"],"auth":"key or CLI login file","fields":"credits/weekly limit/reset","platform":"CLI file host dependent"},
-    {"id":"venice","source":"Venice/","strategies":["api-balance","web-subscription"],"auth":"API key or distinct web account cookie","fields":"API balance/epoch; web credits/spend/refill","platform":"browser import host dependent"},
+    {"id":"venice","source":"Venice/","strategies":["api-balance","web-subscription"],"auth":"API key or distinct web account cookie","fields":"API balance/epoch; web credits/spend/refill","platform":"browser import host dependent; billing permission conditional","supported":["api-balance"],"fixture":"test/venice.test.ts"},
     {"id":"commandcode","source":"CommandCode/","strategies":["web"],"auth":"browser/manual better-auth cookies","fields":"quota/credits/cycle","platform":"manual cookie portable"},
     {"id":"qoder","source":"Qoder/","strategies":["web"],"auth":"browser/manual cookie or cURL capture","fields":"big-model credits","platform":"browser import host dependent"},
     {"id":"stepfun","source":"StepFun/","strategies":["web-login","manual-oasis-token"],"auth":"username/password or Oasis token","fields":"plan quota/reset","platform":"portable HTTP; login mutation requires opt-in"},
@@ -83,7 +83,7 @@
     {"id":"pi","source":"Pi/","strategies":["local-transcript"],"auth":"local Pi/OMP transcript","fields":"estimated API-rate cost; no quota","platform":"local files host dependent"},
     {"id":"v0","source":"V0/","strategies":["api"],"auth":"key/optional project","fields":"billing/rate limits","platform":"portable HTTP; billing permission/scope conditional","supported":["api"],"fixture":"test/v0.test.ts"},
     {"id":"typesafe","source":"TypeSafe/","strategies":["web"],"auth":"Chrome/manual cookie","fields":"spend/credit balance","platform":"browser import host dependent"},
-    {"id":"hyper","source":"Hyper/","strategies":["web","api"],"auth":"session or API key","fields":"HC balance","platform":"browser import host dependent"},
+    {"id":"hyper","source":"Hyper/","strategies":["web","api"],"auth":"session or API key","fields":"HC balance","platform":"browser import host dependent","supported":["api"],"fixture":"test/hyper.test.ts"},
     {"id":"gitkraken","source":"GitKraken/","strategies":["api"],"auth":"token/optional organization","fields":"weekly credits/shared pool","platform":"account/organization scope"},
     {"id":"devpass","source":"DevPass/","strategies":["api"],"auth":"LLM gateway key","fields":"plan credits/weekly usage/all-time spend","platform":"portable HTTP"}
   ]
