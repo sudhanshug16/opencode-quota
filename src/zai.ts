@@ -1,4 +1,4 @@
-import type { Collector, Observation, QuotaWindow } from "./core.js"
+import type { Collector, Observation, QuotaWindow, UsageAmount } from "./core.js"
 import { unavailable } from "./core.js"
 import type { HttpTransport } from "./contracts.js"
 
@@ -57,6 +57,8 @@ export interface ZaiOptions {
   apiKey: () => Promise<string | undefined>
   /** Opt-in best-effort CN account balance, never treated as Coding Plan quota. */
   includeCnBalance?: boolean
+  /** Opt-in one-day and 30-day historical token totals, never quota windows. */
+  includeModelUsage?: boolean
   fetch?: HttpTransport
   now?: () => Date
 }
@@ -94,6 +96,28 @@ export function zaiCollector(options: ZaiOptions): Collector {
           }
         } catch { /* optional account balance must not discard Coding Plan quota */ }
       }
+      if (options.includeModelUsage) {
+        const usage: UsageAmount[] = []
+        for (const days of [1, 30] as const) {
+          const start = new Date(now)
+          start.setHours(0, 0, 0, 0)
+          start.setDate(start.getDate() - days)
+          const end = new Date(now)
+          end.setMinutes(59, 59, 0)
+          const stamp = (value: Date): string => {
+            const pad = (part: number) => String(part).padStart(2, "0")
+            return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())} ${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`
+          }
+          const historyUrl = `${origin}/api/monitor/usage/model-usage?startTime=${encodeURIComponent(stamp(start))}&endTime=${encodeURIComponent(stamp(end))}${options.scope.kind === "team" ? "&type=3" : ""}`
+          try {
+            const history = await (options.fetch ?? fetch)(historyUrl, { method: "GET", headers, redirect: "manual", signal })
+            if (!history.ok || history.redirected) continue
+            const models = parseZaiModelUsage(await history.json() as unknown)
+            if (models) for (const model of models) usage.push({ id: `model-${days}d:${model.name}`, unit: "tokens", amount: model.tokens, authority: "provider", period: days === 1 ? "hourly-history" : "daily-history" })
+          } catch { /* best-effort history never discards quota */ }
+        }
+        if (usage.length) observation.usage = usage
+      }
       return observation
     } catch { return unavailable(base, signal.aborted ? "timeout" : "transport", now) }
   } }
@@ -110,4 +134,28 @@ export function parseZaiCnBalance(value: unknown): number | undefined {
     return Number.isFinite(parsed) ? parsed : undefined
   }
   return numeric(data?.availableBalance) ?? numeric(data?.balance)
+}
+
+/** Source modelDataList/x_time response: sum the aligned token series, bound returned detail. */
+export function parseZaiModelUsage(value: unknown): { name: string; tokens: number }[] | undefined {
+  const root = record(value)
+  const data = record(root?.data)
+  if (root?.success !== true || root.code !== 200 || !data || !Array.isArray(data.x_time) || !Array.isArray(data.modelDataList) || data.x_time.length > 120 || data.modelDataList.length > 200) return undefined
+  const totals: { name: string; tokens: number }[] = []
+  let alignedTokens = 0
+  for (const value of data.modelDataList) {
+    const model = record(value)
+    const name = typeof model?.modelName === "string" ? model.modelName : "Unknown"
+    if (!model || !Array.isArray(model.tokensUsage) || name.length > 120 || /[\x00-\x1f]/.test(name)) return undefined
+    let tokens = 0
+    for (const [index, point] of model.tokensUsage.entries()) {
+      if (!Number.isSafeInteger(point) || point < 0) return undefined
+      tokens += point as number
+      if (!Number.isSafeInteger(tokens)) return undefined
+      if (index < data.x_time.length) alignedTokens += point as number
+    }
+    if (tokens > 0) totals.push({ name, tokens })
+  }
+  totals.sort((a, b) => b.tokens - a.tokens || a.name.localeCompare(b.name))
+  return Number.isSafeInteger(alignedTokens) && alignedTokens > 0 ? totals.slice(0, 20) : []
 }

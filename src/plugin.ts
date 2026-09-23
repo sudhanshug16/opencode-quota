@@ -101,6 +101,7 @@ export default Plugin.define({
         account: zaiAccount, region: zaiRegion, scope: zaiScope,
         apiKey: () => selectedKey("zai-coding-plan", zaiId),
         includeCnBalance: ctx.options.enableZaiCnBalance === true,
+        includeModelUsage: ctx.options.enableZaiModelUsage === true,
       }) : ctx.options.enableZai === true ? unconfiguredCollector("zai", zaiAccount || "unselected") : unsupportedCollector("zai", zaiAccount || "unselected"),
       ctx.options.enableFireworks === true && fireworksId && fireworksAccount && /^[a-zA-Z0-9._-]+$/.test(fireworksSlug) ? fireworksCollector({
         account: fireworksAccount, accountSlug: fireworksSlug, apiKey: () => selectedKey("fireworks-ai", fireworksId),
