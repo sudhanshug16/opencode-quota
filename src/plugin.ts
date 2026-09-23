@@ -124,6 +124,7 @@ export default Plugin.define({
       ctx.options.enableCodex === true && codexId && codexAccount ? codexCollector({
         account: codexAccount,
         oauth: () => selectedCodexOAuth(ctx.integration.connection, codexId, codexAccountId || undefined),
+        includeExtras: ctx.options.enableCodexExtras === true,
       }) : ctx.options.enableCodex === true ? unconfiguredCollector("codex", codexAccount || "unselected") : unsupportedCollector("codex", codexAccount || "unselected"),
       ctx.options.enableCopilot === true && copilotId && copilotAccount ? copilotCollector({
         account: copilotAccount,

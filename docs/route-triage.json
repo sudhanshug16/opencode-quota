@@ -1,12 +1,10 @@
 {
   "codexBarSha": "efaee7a372139beaf93b4206c08865d750b60e7c",
-  "meaning": "Each unimplemented OpenCode-mapped acquisition route appears once. These are route dispositions, not 58 distinct missing provider capabilities. Source/auth inventory is pinned in parity.json; source-backed implementation still requires endpoint and fixture review. Stored connection ID is not permission proof.",
+  "meaning": "Each of 44 unimplemented OpenCode-mapped acquisition routes appears once. These are route dispositions, not 44 distinct missing provider capabilities. The source-reviewed stored-credential candidate group is empty; privileged/cloud and separate-account routes have their own authorization constraints. Source/auth inventory is pinned in parity.json. Stored connection ID is not permission proof.",
   "dispositions": {
     "storedCredentialCandidate": {
       "meaning": "A distinct balance, quota, spend or usage fact may be obtainable using an exact selected OpenCode key or OAuth connection. Endpoint permission/audience, plan and region must be checked; no live compatibility claim.",
-      "routes": [
-        "codex:oauth-extras"
-      ]
+      "routes": []
     },
     "privilegedOrPlatformCredential": {
       "meaning": "Distinct account billing/usage capability, but ordinary inference keys do not prove admin, management, organization, cloud-monitoring or enterprise authorization. Needs opt-in account/project/team selection and an appropriate adapter.",

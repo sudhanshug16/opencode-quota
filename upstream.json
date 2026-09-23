@@ -35,6 +35,9 @@
     "Sources/CodexBarCore/Providers/Alibaba/AlibabaCodingPlanUsageFetcher.swift",
     "Sources/CodexBarCore/Providers/Alibaba/AlibabaCodingPlanAPIRegion.swift",
     "Tests/CodexBarTests/AlibabaCodingPlanProviderTests.swift",
+    "Sources/CodexBarCore/Providers/Codex/CodexSpendControlsMonthlyUsage.swift",
+    "Tests/CodexBarTests/CodexRateLimitResetCreditsTests.swift",
+    "Tests/CodexBarTests/CodexSpendControlsMonthlyUsageTests.swift",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [

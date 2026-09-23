@@ -74,6 +74,31 @@ export interface CodexOptions {
   oauth: () => Promise<{ accessToken: string; accountId: string } | undefined>
   fetch?: HttpTransport
   now?: () => Date
+  /** Opt-in account-bound dashboard extras; failures never erase wham quota. */
+  includeExtras?: boolean
+}
+
+export function parseCodexResetCredits(value: unknown): number | undefined {
+  const body = record(value)
+  if (!Array.isArray(body?.credits) || !Number.isSafeInteger(body.available_count) || (body.available_count as number) < 0) return undefined
+  return body.available_count as number
+}
+
+export function parseCodexMonthlySpend(value: unknown): QuotaWindow | undefined {
+  const body = record(value)
+  const effective = record(body?.effective_monthly_limit)
+  const limit = finite(effective?.limit) ?? (typeof effective?.limit === "string" && effective.limit.trim() ? Number(effective.limit) : undefined)
+  const used = finite(body?.current_month_usage) ?? (typeof body?.current_month_usage === "string" && body.current_month_usage.trim() ? Number(body.current_month_usage) : undefined)
+  if (typeof effective?.enforcement_mode !== "string" && effective?.enforcement_mode != null) return undefined
+  if (["none", "off", "disabled", "no_limit"].includes(effective?.enforcement_mode?.toLowerCase() ?? "")) return undefined
+  if (limit === undefined || !Number.isFinite(limit) || limit <= 0 || used === undefined || !Number.isFinite(used) || used < 0) return undefined
+  return { id: "monthly-spend-control", kind: "monthly", unit: "credits", limit, used, remaining: Math.max(0, limit - used) }
+}
+
+export function parseCodexWorkspaceBalance(value: unknown): number | undefined {
+  const raw = record(value)?.balance
+  const balance = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() ? Number(raw) : undefined
+  return balance !== undefined && Number.isFinite(balance) ? Math.max(0, balance) : undefined
 }
 
 export function codexCollector(options: CodexOptions): Collector {
@@ -90,7 +115,36 @@ export function codexCollector(options: CodexOptions): Collector {
       const response = await (options.fetch ?? fetch)(URL, { method: "GET", headers: { Authorization: `Bearer ${accessToken}`, "ChatGPT-Account-Id": accountId, Accept: "application/json", "User-Agent": "opencode-quota/0.1" }, redirect: "manual", signal })
       if (response.status === 401 || response.status === 403) return unavailable(base, "auth", now)
       if (!response.ok || response.redirected) return unavailable(base, "transport", now)
-      return parseCodexUsage(await response.json() as unknown, options.account, accountId, now) ?? unavailable(base, "invalid_response", now)
+      const payload: unknown = await response.json()
+      const observation = parseCodexUsage(payload, options.account, accountId, now)
+      if (!observation) return unavailable(base, "invalid_response", now)
+      if (!options.includeExtras) return observation
+      const http = options.fetch ?? fetch
+      const sharedHeaders: Record<string, string> = { Authorization: `Bearer ${accessToken}`, "ChatGPT-Account-Id": accountId, Accept: "application/json", "User-Agent": "opencode-quota/0.1" }
+      const extra = async (url: string, headers = sharedHeaders): Promise<unknown> => {
+        try {
+          const result = await http(url, { method: "GET", headers, redirect: "manual", signal })
+          return result.ok && !result.redirected ? await result.json() as unknown : undefined
+        } catch { return undefined }
+      }
+      const resetCredits = parseCodexResetCredits(await extra("https://chatgpt.com/backend-api/wham/rate-limit-reset-credits",
+        { ...sharedHeaders, "OpenAI-Beta": "codex-1", originator: "Codex Desktop" }))
+      if (resetCredits !== undefined) observation.credits = [...(observation.credits ?? []), { id: "rate-limit-resets", amount: resetCredits, unit: "reset-credits" }]
+      const root = record(payload)
+      const plan = root?.plan_type
+      const individual = record(root?.individual_limit) ?? record(record(root?.rate_limit)?.individual_limit) ?? record(record(root?.spend_control)?.individual_limit)
+      const consumer = ["guest", "free", "go", "plus", "pro"].includes(typeof plan === "string" ? plan : "")
+      if (!consumer && root?.spend_control != null && !(finite(individual?.limit) && (finite(individual?.limit) ?? 0) > 0)) {
+        const path = `https://chatgpt.com/backend-api/accounts/${encodeURIComponent(accountId)}/spend-controls/current-user/monthly-usage`
+        const window = parseCodexMonthlySpend(await extra(path))
+        if (window) observation.windows = [...observation.windows, window]
+      }
+      const whamCredits = record(root?.credits)
+      if (!consumer && whamCredits?.has_credits === true && whamCredits.unlimited !== true && whamCredits.balance == null) {
+        const balance = parseCodexWorkspaceBalance(await extra(`https://chatgpt.com/backend-api/accounts/${encodeURIComponent(accountId)}/remaining_balance`))
+        if (balance !== undefined) observation.credits = [...(observation.credits ?? []), { id: "workspace-remaining", amount: balance, unit: "credits" }]
+      }
+      return observation
     } catch { return unavailable(base, signal.aborted ? "timeout" : "transport", now) }
   } }
 }
