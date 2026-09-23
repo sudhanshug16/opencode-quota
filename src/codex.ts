@@ -1,13 +1,24 @@
 import type { Collector, Observation, QuotaWindow } from "./core.js"
 import { unavailable } from "./core.js"
 import type { HttpTransport } from "./contracts.js"
+import type { IntegrationDomain } from "@opencode/plugin/promise/integration"
 
 const URL = "https://chatgpt.com/backend-api/wham/usage"
-/** Check audience method, account binding and expiry before sending a stored OAuth access token. */
-export function codexAccess(credential: { type: string; methodID?: string; metadata?: Readonly<Record<string, unknown>>; access?: string; expires?: number } | undefined, accountId: string, now = Date.now()): string | undefined {
+/** Prefer OpenCode's OAuth account metadata; a manual nonsecret selector is conditional only when metadata is absent. */
+export function codexAccess(credential: { type: string; methodID?: string; metadata?: Readonly<Record<string, unknown>>; access?: string; expires?: number } | undefined, selectedAccountId?: string, now = Date.now()): { accessToken: string; accountId: string } | undefined {
   if (credential?.type !== "oauth" || !["chatgpt-browser", "chatgpt-headless"].includes(credential.methodID ?? "")) return undefined
-  if (credential.metadata?.accountID !== accountId || typeof credential.expires !== "number" || credential.expires <= now + 30_000) return undefined
-  return typeof credential.access === "string" && credential.access ? credential.access : undefined
+  const stored = credential.metadata?.accountID
+  if (stored !== undefined && (typeof stored !== "string" || !stored.trim())) return undefined
+  const accountId = stored ?? selectedAccountId
+  if (typeof accountId !== "string" || !accountId.trim() || /[\r\n]/.test(accountId) || (selectedAccountId && selectedAccountId !== accountId)) return undefined
+  if (typeof credential.expires !== "number" || credential.expires <= now + 30_000) return undefined
+  return typeof credential.access === "string" && credential.access ? { accessToken: credential.access, accountId } : undefined
+}
+/** IntegrationDomain is the installed @opencode/plugin 2.0.15 promise API contract. */
+export async function selectedCodexOAuth(connection: IntegrationDomain["connection"], connectionId: string, accountId?: string): Promise<{ accessToken: string; accountId: string } | undefined> {
+  const active = await connection.active("openai")
+  if (active?.type !== "credential" || active.id !== connectionId || active.method !== "oauth") return undefined
+  return codexAccess(await connection.resolve(active), accountId)
 }
 function record(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined
@@ -59,26 +70,27 @@ export function parseCodexUsage(value: unknown, account: string, accountId: stri
 
 export interface CodexOptions {
   account: string
-  accountId: string
-  /** Already-resolved OpenCode OAuth access token. No local CLI or refresh-token access. */
-  accessToken: () => Promise<string | undefined>
+  /** One selected OpenCode OAuth credential resolved atomically with its account identity. */
+  oauth: () => Promise<{ accessToken: string; accountId: string } | undefined>
   fetch?: HttpTransport
   now?: () => Date
 }
 
 export function codexCollector(options: CodexOptions): Collector {
-  if (!options.accountId.trim() || /[\r\n]/.test(options.accountId)) throw new Error("Explicit ChatGPT account ID required")
   return { id: "codex", async collect(signal) {
     const now = options.now?.() ?? new Date()
-    const base = { provider: "codex", account: options.account, pool: `chatgpt:${options.accountId}`, routes: [], source: URL }
-    let token: string | undefined
-    try { token = (await options.accessToken())?.trim() } catch { return unavailable(base, "auth", now) }
-    if (!token) return unavailable(base, "not_configured", now)
+    const base = { provider: "codex", account: options.account, pool: "unknown", routes: [], source: URL }
+    let oauth: Awaited<ReturnType<CodexOptions["oauth"]>>
+    try { oauth = await options.oauth() } catch { return unavailable(base, "auth", now) }
+    if (!oauth) return unavailable(base, "not_configured", now)
+    const { accessToken, accountId } = oauth
+    if (!accessToken.trim() || !accountId.trim() || /[\r\n]/.test(accountId)) return unavailable(base, "not_configured", now)
+    base.pool = `chatgpt:${accountId}`
     try {
-      const response = await (options.fetch ?? fetch)(URL, { method: "GET", headers: { Authorization: `Bearer ${token}`, "ChatGPT-Account-Id": options.accountId, Accept: "application/json", "User-Agent": "opencode-quota/0.1" }, redirect: "manual", signal })
+      const response = await (options.fetch ?? fetch)(URL, { method: "GET", headers: { Authorization: `Bearer ${accessToken}`, "ChatGPT-Account-Id": accountId, Accept: "application/json", "User-Agent": "opencode-quota/0.1" }, redirect: "manual", signal })
       if (response.status === 401 || response.status === 403) return unavailable(base, "auth", now)
       if (!response.ok || response.redirected) return unavailable(base, "transport", now)
-      return parseCodexUsage(await response.json() as unknown, options.account, options.accountId, now) ?? unavailable(base, "invalid_response", now)
+      return parseCodexUsage(await response.json() as unknown, options.account, accountId, now) ?? unavailable(base, "invalid_response", now)
     } catch { return unavailable(base, signal.aborted ? "timeout" : "transport", now) }
   } }
 }

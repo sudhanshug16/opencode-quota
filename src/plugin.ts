@@ -7,8 +7,9 @@ import { deepSeekCollector } from "./deepseek.js"
 import { moonshotCollector } from "./moonshot.js"
 import { zaiCollector } from "./zai.js"
 import { fireworksCollector } from "./fireworks.js"
-import { codexAccess, codexCollector } from "./codex.js"
+import { codexCollector, selectedCodexOAuth } from "./codex.js"
 import { copilotAccess, copilotCollector } from "./copilot.js"
+import { poeCollector, selectedPoeToken } from "./poe.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -36,6 +37,8 @@ export default Plugin.define({
     const codexAccountId = selectedId(ctx.options.codexAccountId)
     const copilotId = selectedId(ctx.options.copilotConnectionId)
     const copilotAccount = selectedId(ctx.options.copilotAccountLabel)
+    const poeId = selectedId(ctx.options.poeConnectionId)
+    const poeAccount = selectedId(ctx.options.poeAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -72,14 +75,9 @@ export default Plugin.define({
       ctx.options.enableFireworks === true && fireworksId && fireworksAccount && /^[a-zA-Z0-9._-]+$/.test(fireworksSlug) ? fireworksCollector({
         account: fireworksAccount, accountSlug: fireworksSlug, apiKey: () => selectedKey("fireworks-ai", fireworksId),
       }) : ctx.options.enableFireworks === true ? unconfiguredCollector("fireworks", fireworksAccount || "unselected") : unsupportedCollector("fireworks", fireworksAccount || "unselected"),
-      ctx.options.enableCodex === true && codexId && codexAccount && codexAccountId ? codexCollector({
-        account: codexAccount, accountId: codexAccountId,
-        accessToken: async () => {
-          const connection = await ctx.integration.connection.active("openai")
-          if (connection?.type !== "credential" || connection.id !== codexId || connection.method !== "oauth") return undefined
-          const credential = await ctx.integration.connection.resolve(connection)
-          return codexAccess(credential, codexAccountId)
-        },
+      ctx.options.enableCodex === true && codexId && codexAccount ? codexCollector({
+        account: codexAccount,
+        oauth: () => selectedCodexOAuth(ctx.integration.connection, codexId, codexAccountId || undefined),
       }) : ctx.options.enableCodex === true ? unconfiguredCollector("codex", codexAccount || "unselected") : unsupportedCollector("codex", codexAccount || "unselected"),
       ctx.options.enableCopilot === true && copilotId && copilotAccount ? copilotCollector({
         account: copilotAccount,
@@ -89,6 +87,9 @@ export default Plugin.define({
           return copilotAccess(await ctx.integration.connection.resolve(connection))
         },
       }) : ctx.options.enableCopilot === true ? unconfiguredCollector("copilot", copilotAccount || "unselected") : unsupportedCollector("copilot", copilotAccount || "unselected"),
+      ctx.options.enablePoe === true && poeId && poeAccount ? poeCollector({
+        account: poeAccount, apiKey: () => selectedPoeToken(ctx.integration.connection, poeId),
+      }) : ctx.options.enablePoe === true ? unconfiguredCollector("poe", poeAccount || "unselected") : unsupportedCollector("poe", poeAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),

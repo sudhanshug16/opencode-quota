@@ -15,18 +15,20 @@
     "./fireworks": "./dist/fireworks.js",
     "./codex": "./dist/codex.js",
     "./copilot": "./dist/copilot.js",
+    "./poe": "./dist/poe.js",
     "./plugin": "./dist/plugin.js",
     "./rpc": "./dist/rpc.js"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/deepseek.ts src/moonshot.ts src/zai.ts src/fireworks.ts src/codex.ts src/copilot.ts src/plugin.ts src/rpc.ts --root src --outdir dist --target=node --format=esm --external @opencode/plugin",
+    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/deepseek.ts src/moonshot.ts src/zai.ts src/fireworks.ts src/codex.ts src/copilot.ts src/poe.ts src/plugin.ts src/rpc.ts --root src --outdir dist --target=node --format=esm --external @opencode/plugin",
     "check": "bun run typecheck && bun test && bun run build"
   },
   "dependencies": {
     "@opencode/plugin": "2.0.15"
   },
   "devDependencies": {
+    "@opencode/schema": "2.0.15",
     "@types/bun": "1.4.2",
     "typescript": "7.0.2"
   }

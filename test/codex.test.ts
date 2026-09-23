@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test"
-import { codexAccess, codexCollector, parseCodexUsage } from "../src/codex.js"
+import { codexAccess, codexCollector, parseCodexUsage, selectedCodexOAuth } from "../src/codex.js"
+import type { IntegrationDomain } from "@opencode/plugin/promise/integration"
+import { Credential } from "@opencode/schema/credential"
+import { IntegrationMethodID } from "@opencode/schema/integration-id"
 
 const now = new Date("2026-09-23T12:00:00Z")
 const body = { account_id: "account-1", plan_type: "plus", rate_limit: {
@@ -21,15 +24,41 @@ test("wham windows, named limits and credits remain bound to account", () => {
 
 test("selected OpenCode OAuth method/account/expiry gate and exact wham request", async () => {
   const oauth = { type: "oauth", methodID: "chatgpt-browser", metadata: { accountID: "account-1" }, access: "fake-access", expires: now.getTime() + 3_600_000 }
-  expect(codexAccess(oauth, "account-1", now.getTime())).toBe("fake-access")
+  expect(codexAccess(oauth, undefined, now.getTime())).toEqual({ accessToken: "fake-access", accountId: "account-1" })
+  expect(codexAccess(oauth, "account-1", now.getTime())).toEqual({ accessToken: "fake-access", accountId: "account-1" })
   expect(codexAccess(oauth, "account-2", now.getTime())).toBeUndefined()
+  expect(codexAccess({ ...oauth, metadata: undefined }, undefined, now.getTime())).toBeUndefined()
+  expect(codexAccess({ ...oauth, metadata: undefined }, "manually-selected", now.getTime())).toEqual({ accessToken: "fake-access", accountId: "manually-selected" })
+  expect(codexAccess({ ...oauth, metadata: { accountID: "" } }, "manually-selected", now.getTime())).toBeUndefined()
   expect(codexAccess({ ...oauth, methodID: "other" }, "account-1", now.getTime())).toBeUndefined()
   expect(codexAccess({ ...oauth, expires: now.getTime() + 1_000 }, "account-1", now.getTime())).toBeUndefined()
   const seen: { url?: string; init?: RequestInit } = {}
-  const collector = codexCollector({ account: "selected", accountId: "account-1", accessToken: async () => "fake-access", now: () => now, fetch: async (url, init) => {
+  const collector = codexCollector({ account: "selected", oauth: async () => ({ accessToken: "fake-access", accountId: "account-1" }), now: () => now, fetch: async (url, init) => {
     seen.url = url; seen.init = init; return Response.json(body)
   } })
   const result = await collector.collect(new AbortController().signal)
   expect(seen).toMatchObject({ url: "https://chatgpt.com/backend-api/wham/usage", init: { redirect: "manual", headers: { Authorization: "Bearer fake-access", "ChatGPT-Account-Id": "account-1" } } })
   expect(JSON.stringify(result)).not.toContain("fake-access")
+})
+
+test("installed SDK OAuth credential shape and active connection are account-bound", async () => {
+  const value = Credential.OAuth.make({ type: "oauth", methodID: IntegrationMethodID.make("chatgpt-browser"), access: "fake-access", refresh: "fake-refresh", expires: Date.now() + 3_600_000, metadata: { accountID: "from-open-code" } })
+  let resolutions = 0
+  const active: Awaited<ReturnType<IntegrationDomain["connection"]["active"]>> = { type: "credential", id: "cred-selected", label: "personal", method: "oauth" }
+  const connection: IntegrationDomain["connection"] = {
+    active: async () => active,
+    resolve: async () => { resolutions++; return value },
+  }
+  expect(await selectedCodexOAuth(connection, "cred-selected")).toEqual({ accessToken: "fake-access", accountId: "from-open-code" })
+  expect(await selectedCodexOAuth(connection, "cred-selected", "from-open-code")).toEqual({ accessToken: "fake-access", accountId: "from-open-code" })
+  expect(await selectedCodexOAuth(connection, "cred-selected", "different-account")).toBeUndefined()
+  expect(await selectedCodexOAuth(connection, "other-connection")).toBeUndefined()
+  expect(resolutions).toBe(3)
+  const missingIdentity: IntegrationDomain["connection"] = { ...connection, resolve: async () => Credential.OAuth.make({ ...value, metadata: undefined }) }
+  expect(await selectedCodexOAuth(missingIdentity, "cred-selected")).toBeUndefined()
+  expect(await selectedCodexOAuth(missingIdentity, "cred-selected", "explicit-account")).toEqual({ accessToken: "fake-access", accountId: "explicit-account" })
+  const expired: IntegrationDomain["connection"] = { ...connection, resolve: async () => Credential.OAuth.make({ ...value, expires: Date.now() - 1 }) }
+  expect(await selectedCodexOAuth(expired, "cred-selected")).toBeUndefined()
+  const wrongMethod: IntegrationDomain["connection"] = { ...connection, resolve: async () => Credential.OAuth.make({ ...value, methodID: IntegrationMethodID.make("another-audience") }) }
+  expect(await selectedCodexOAuth(wrongMethod, "cred-selected")).toBeUndefined()
 })

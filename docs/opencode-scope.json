@@ -4,7 +4,7 @@
   "openCodeCatalog": "https://models.dev/api.json",
   "catalogSha256": "9ae55393e3711189a9fe8b32bd22d218319de11c5c25fb27768ba8273f915eb7",
   "openCodeDocs": "https://opencode.ai/v2/docs/providers",
-  "rule": "Eligible means a CodexBar provider has an OpenCode V2 catalog/bundled model-provider counterpart, not that its acquisition strategy works with an existing OpenCode credential. Custom providers and consumer products are not implicitly mapped. Strategy IDs are normalized acquisition routes in parity.json, not upstream symbol names.",
+  "rule": "Eligible means a CodexBar provider has a reviewed OpenCode V2 catalog model-provider counterpart, not that its acquisition strategy works with an existing OpenCode credential. Excluded means a distinct external account/product or an acquisition surface unrelated to OpenCode-supported accounts. Unresolved means plausible alias without a verified account/pool mapping and is not a target gap yet. Strategy IDs are normalized acquisition routes in parity.json, not upstream symbol names.",
   "eligible": [
     {"id":"codex","openCode":["openai"],"routes":["oauth-wham","oauth-extras","pat","web-session"],"credential":"conditional OAuth audience and selected account; PAT/web require distinct auth"},
     {"id":"openai","openCode":["openai"],"routes":["admin-api","legacy-credit-grants"],"credential":"Admin permission/key, not ordinary inference key"},
@@ -51,7 +51,15 @@
     {"id":"hyper","openCode":["hyper"],"routes":["api","web"],"credential":"API key for balance or distinct web session"}
   ],
   "excluded": [
-    "cursor","qwencloud","factory","antigravity","devin","manus","kiro","augment","jetbrains","amp","t3chat","elevenlabs","warp","windsurf","zed","codebuff","commandcode","qoder","grok","llmproxy","litellm","bifrost","deepgram","helmcode","clawrouter","sub2api","wayfinder","zoommate","notion","ibmbob","nous","muse","coderabbit","replicate","pi","typesafe","gitkraken","devpass"
+    "cursor","devin","manus","kiro","augment","jetbrains","amp","t3chat","elevenlabs","warp","windsurf","zed","codebuff","commandcode","qoder","grok","llmproxy","litellm","bifrost","deepgram","helmcode","clawrouter","sub2api","wayfinder","zoommate","notion","ibmbob","muse","coderabbit","pi","gitkraken","devpass"
   ],
-  "excludedReason": "No verified first-party OpenCode V2 model-provider counterpart in the pinned catalog; custom integrations are not assumed. Consumer Grok is distinct from xAI developer platform. Reclassify only with an explicit verified mapping."
+  "excludedReason": "Separate client/product, proxy or native app account without a verified first-party OpenCode model-provider account counterpart. Consumer Grok is distinct from xAI developer platform; custom integrations are not assumed.",
+  "unresolved": [
+    {"id":"qwencloud","candidate":"alibaba","reason":"Qwen Cloud subscription vs Alibaba model API/Coding Plan account and pool unverified"},
+    {"id":"factory","candidate":"OpenCode bundled Factory integration","reason":"Factory/Droid account separate from verified models.dev provider mapping"},
+    {"id":"antigravity","candidate":"google","reason":"Antigravity account/usage entitlement vs Google model API unverified"},
+    {"id":"nous","candidate":"models.dev custom provider","reason":"No pinned catalog account mapping"},
+    {"id":"replicate","candidate":"models.dev custom provider","reason":"No pinned catalog account mapping"},
+    {"id":"typesafe","candidate":"models.dev custom provider","reason":"No pinned catalog account mapping"}
+  ]
 }
