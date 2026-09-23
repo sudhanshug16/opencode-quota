@@ -31,7 +31,7 @@
     {"id":"vertexai","source":"VertexAI/","strategies":["google-adc-monitoring","local-transcript"],"auth":"Google ADC, Cloud Monitoring","fields":"quota usage/limits, local cost","platform":"ADC/project scope required"},
     {"id":"augment","source":"Augment/","strategies":["auggie-cli","web-fallback"],"auth":"CLI or cookie","fields":"credits/subscription","platform":"CLI/browser host dependent"},
     {"id":"jetbrains","source":"JetBrains/","strategies":["ide-xml"],"auth":"local IDE data","fields":"monthly credits/refill","platform":"installed IDE host dependent"},
-    {"id":"moonshot","source":"Moonshot/","strategies":["api"],"auth":"API key","fields":"balance/deficit","platform":"international/China host"},
+    {"id":"moonshot","source":"Moonshot/","strategies":["api"],"auth":"API key","fields":"balance/deficit","platform":"international/China host","supported":["api"],"fixture":"test/moonshot.test.ts"},
     {"id":"amp","source":"Amp/","strategies":["amp-cli","api-balance","web-legacy"],"auth":"CLI, access token or cookie","fields":"free usage/credits","platform":"CLI/browser host dependent"},
     {"id":"t3chat","source":"T3Chat/","strategies":["web"],"auth":"browser tRPC session","fields":"four-hour/monthly buckets","platform":"cookie import host dependent"},
     {"id":"ollama","source":"Ollama/","strategies":["api-verification","web-usage"],"auth":"Cloud key or browser cookie","fields":"plan/session/weekly quota/reset","platform":"browser import host dependent"},
