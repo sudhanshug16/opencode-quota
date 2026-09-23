@@ -5,7 +5,7 @@
     "storedCredentialCandidate": {
       "meaning": "A distinct balance, quota, spend or usage fact may be obtainable using an exact selected OpenCode key or OAuth connection. Endpoint permission/audience, plan and region must be checked; no live compatibility claim.",
       "routes": [
-        "codex:oauth-extras", "alibaba:api-fallback", "minimax:api", "kilo:api"
+        "codex:oauth-extras", "alibaba:api-fallback", "kilo:api"
       ]
     },
     "privilegedOrPlatformCredential": {

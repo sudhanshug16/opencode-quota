@@ -20,6 +20,7 @@ import { hyperCollector } from "./hyper.js"
 import { huggingFaceCollector } from "./huggingface.js"
 import { neuralwattCollector } from "./neuralwatt.js"
 import { syntheticCollector } from "./synthetic.js"
+import { miniMaxCollector } from "./minimax.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -71,6 +72,9 @@ export default Plugin.define({
     const neuralwattAccount = selectedId(ctx.options.neuralwattAccountLabel)
     const syntheticId = selectedId(ctx.options.syntheticConnectionId)
     const syntheticAccount = selectedId(ctx.options.syntheticAccountLabel)
+    const miniMaxId = selectedId(ctx.options.miniMaxConnectionId)
+    const miniMaxAccount = selectedId(ctx.options.miniMaxAccountLabel)
+    const miniMaxRegion = ctx.options.miniMaxRegion === "global" || ctx.options.miniMaxRegion === "cn" ? ctx.options.miniMaxRegion : undefined
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -155,6 +159,9 @@ export default Plugin.define({
       ctx.options.enableSynthetic === true && syntheticId && syntheticAccount ? syntheticCollector({
         account: syntheticAccount, apiKey: () => selectedKey("synthetic", syntheticId),
       }) : ctx.options.enableSynthetic === true ? unconfiguredCollector("synthetic", syntheticAccount || "unselected") : unsupportedCollector("synthetic", syntheticAccount || "unselected"),
+      ctx.options.enableMiniMax === true && miniMaxId && miniMaxAccount && miniMaxRegion ? miniMaxCollector({
+        account: miniMaxAccount, region: miniMaxRegion, apiKey: () => selectedKey(miniMaxRegion === "cn" ? "minimax-cn-coding-plan" : "minimax-coding-plan", miniMaxId),
+      }) : ctx.options.enableMiniMax === true ? unconfiguredCollector("minimax", miniMaxAccount || "unselected") : unsupportedCollector("minimax", miniMaxAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
