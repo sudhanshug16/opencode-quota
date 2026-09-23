@@ -9,6 +9,10 @@
     "Sources/CodexBarCore/Providers/OpenCodeGo/OpenCodeGoUsageSnapshot.swift",
     "Tests/CodexBarTests/OpenCodeGoUsageParserTests.swift",
     "Sources/CodexBarCore/Providers/Codex/CodexOAuth/CodexOAuthUsageFetcher.swift",
+    "Sources/CodexBarCore/Providers/Copilot/CopilotUsageFetcher.swift",
+    "Sources/CodexBarCore/CopilotUsageModels.swift",
+    "Sources/CodexBarCore/Resources/Plugins/poe.js",
+    "Sources/CodexBarCore/Providers/DeepInfra/DeepInfraUsageFetcher.swift",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [

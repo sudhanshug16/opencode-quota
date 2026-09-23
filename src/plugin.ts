@@ -10,6 +10,7 @@ import { fireworksCollector } from "./fireworks.js"
 import { codexCollector, selectedCodexOAuth } from "./codex.js"
 import { copilotAccess, copilotCollector } from "./copilot.js"
 import { poeCollector, selectedPoeToken } from "./poe.js"
+import { deepInfraCollector } from "./deepinfra.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -39,6 +40,8 @@ export default Plugin.define({
     const copilotAccount = selectedId(ctx.options.copilotAccountLabel)
     const poeId = selectedId(ctx.options.poeConnectionId)
     const poeAccount = selectedId(ctx.options.poeAccountLabel)
+    const deepInfraId = selectedId(ctx.options.deepInfraConnectionId)
+    const deepInfraAccount = selectedId(ctx.options.deepInfraAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -90,6 +93,9 @@ export default Plugin.define({
       ctx.options.enablePoe === true && poeId && poeAccount ? poeCollector({
         account: poeAccount, apiKey: () => selectedPoeToken(ctx.integration.connection, poeId),
       }) : ctx.options.enablePoe === true ? unconfiguredCollector("poe", poeAccount || "unselected") : unsupportedCollector("poe", poeAccount || "unselected"),
+      ctx.options.enableDeepInfra === true && deepInfraId && deepInfraAccount ? deepInfraCollector({
+        account: deepInfraAccount, apiKey: () => selectedKey("deepinfra", deepInfraId),
+      }) : ctx.options.enableDeepInfra === true ? unconfiguredCollector("deepinfra", deepInfraAccount || "unselected") : unsupportedCollector("deepinfra", deepInfraAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
