@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { parseZaiQuota, zaiCollector } from "../src/zai.js"
+import { parseZaiCnBalance, parseZaiQuota, zaiCollector } from "../src/zai.js"
 
 const now = new Date("2026-09-23T12:00:00Z")
 const body = { success: true, code: 200, data: { limits: [
@@ -27,4 +27,36 @@ test("team selector sends bounded organization/project headers; no secret in res
   expect(result.pool).toBe("team:org/project")
   expect(JSON.stringify(result)).not.toContain("fake-key")
   expect(() => zaiCollector({ account: "a", region: "global", scope: { kind: "team", organization: "", project: "p" }, apiKey: async () => "key" })).toThrow()
+})
+
+test("CN PAYG balance prefers available value; null is unknown, not zero", () => {
+  expect(parseZaiCnBalance({ success: true, data: { availableBalance: "12.50", balance: "25" } })).toBe(12.5)
+  expect(parseZaiCnBalance({ success: true, data: { availableBalance: null, balance: "25" } })).toBe(25)
+  expect(parseZaiCnBalance({ success: true, data: { availableBalance: null, balance: null } })).toBeUndefined()
+  expect(parseZaiCnBalance({ success: false, data: { balance: 5 } })).toBeUndefined()
+})
+
+test("optional CN balance is key-bound and independent of Coding Plan quota", async () => {
+  const urls: string[] = []
+  const collector = zaiCollector({ account: "selected", region: "bigmodel-cn", scope: { kind: "personal" }, includeCnBalance: true,
+    apiKey: async () => "fake-key", now: () => now, fetch: async (url, init) => {
+      urls.push(url)
+      expect(init).toMatchObject({ redirect: "manual", headers: { Authorization: "Bearer fake-key" } })
+      return Response.json(url.includes("query-customer-account-report") ? { success: true, data: { availableBalance: "14.25" } } : body)
+    } })
+  const result = await collector.collect(new AbortController().signal)
+  expect(urls).toEqual(["https://open.bigmodel.cn/api/monitor/usage/quota/limit", "https://www.bigmodel.cn/api/biz/account/query-customer-account-report"])
+  expect(result).toMatchObject({ status: "available", credits: [{ id: "cn-payg", amount: 14.25, unit: "CNY" }] })
+  expect(result.windows).toHaveLength(3)
+  expect(JSON.stringify(result)).not.toContain("fake-key")
+  const failed = zaiCollector({ account: "selected", region: "bigmodel-cn", scope: { kind: "personal" }, includeCnBalance: true,
+    apiKey: async () => "fake-key", now: () => now, fetch: async url => url.includes("query-customer-account-report") ? new Response("denied", { status: 403 }) : Response.json(body) })
+  const failedResult = await failed.collect(new AbortController().signal)
+  expect(failedResult.status).toBe("available")
+  expect(failedResult.windows[0]?.id).toBe("five-hour")
+  expect(failedResult.credits).toBeUndefined()
+  const teamUrls: string[] = []
+  await zaiCollector({ account: "team", region: "bigmodel-cn", scope: { kind: "team", organization: "o", project: "p" }, includeCnBalance: true,
+    apiKey: async () => "fake-key", fetch: async url => { teamUrls.push(url); return Response.json(body) } }).collect(new AbortController().signal)
+  expect(teamUrls).toHaveLength(1)
 })
