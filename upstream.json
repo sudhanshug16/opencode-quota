@@ -25,6 +25,8 @@
     "Sources/CodexBarCore/Resources/Plugins/hyper.ts",
     "Sources/CodexBarCore/Resources/Plugins/huggingface.ts",
     "Sources/CodexBarCore/Resources/Plugins/neuralwatt.js",
+    "Sources/CodexBarCore/Resources/Plugins/synthetic.js",
+    "Tests/CodexBarTests/SyntheticProviderTests.swift",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [

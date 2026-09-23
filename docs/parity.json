@@ -35,7 +35,7 @@
     {"id":"amp","source":"Amp/","strategies":["amp-cli","api-balance","web-legacy"],"auth":"CLI, access token or cookie","fields":"free usage/credits","platform":"CLI/browser host dependent"},
     {"id":"t3chat","source":"T3Chat/","strategies":["web"],"auth":"browser tRPC session","fields":"four-hour/monthly buckets","platform":"cookie import host dependent"},
     {"id":"ollama","source":"Ollama/","strategies":["api-verification","web-usage"],"auth":"Cloud key or browser cookie","fields":"plan/session/weekly quota/reset","platform":"browser import host dependent"},
-    {"id":"synthetic","source":"Synthetic/","strategies":["api"],"auth":"API key","fields":"five-hour/weekly-token/search-hourly/reset","platform":"portable HTTP"},
+    {"id":"synthetic","source":"Synthetic/","strategies":["api"],"auth":"API key","fields":"five-hour/weekly-token/search-hourly/reset, optional weekly USD credit cap","platform":"portable HTTP; quota entitlement conditional","supported":["api"],"fixture":"test/synthetic.test.ts"},
     {"id":"openrouter","source":"OpenRouter/","strategies":["key-api","credits-api","management-activity"],"auth":"selected inference key; separate optional management key","fields":"key cap, credits, key spend; optional 30-day activity","platform":"portable HTTP; management account boundary","supported":["key-api","credits-api"],"fixture":"test/openrouter.test.ts"},
     {"id":"elevenlabs","source":"ElevenLabs/","strategies":["api"],"auth":"API key","fields":"character credits/reset/voice slots","platform":"portable HTTP"},
     {"id":"warp","source":"Warp/","strategies":["api"],"auth":"token","fields":"monthly request credits/refill","platform":"portable HTTP"},

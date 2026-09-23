@@ -19,6 +19,7 @@ import { veniceCollector } from "./venice.js"
 import { hyperCollector } from "./hyper.js"
 import { huggingFaceCollector } from "./huggingface.js"
 import { neuralwattCollector } from "./neuralwatt.js"
+import { syntheticCollector } from "./synthetic.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -68,6 +69,8 @@ export default Plugin.define({
     const hfAccount = selectedId(ctx.options.huggingFaceAccountLabel)
     const neuralwattId = selectedId(ctx.options.neuralwattConnectionId)
     const neuralwattAccount = selectedId(ctx.options.neuralwattAccountLabel)
+    const syntheticId = selectedId(ctx.options.syntheticConnectionId)
+    const syntheticAccount = selectedId(ctx.options.syntheticAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -149,6 +152,9 @@ export default Plugin.define({
       ctx.options.enableNeuralwatt === true && neuralwattId && neuralwattAccount ? neuralwattCollector({
         account: neuralwattAccount, apiKey: () => selectedKey("neuralwatt", neuralwattId),
       }) : ctx.options.enableNeuralwatt === true ? unconfiguredCollector("neuralwatt", neuralwattAccount || "unselected") : unsupportedCollector("neuralwatt", neuralwattAccount || "unselected"),
+      ctx.options.enableSynthetic === true && syntheticId && syntheticAccount ? syntheticCollector({
+        account: syntheticAccount, apiKey: () => selectedKey("synthetic", syntheticId),
+      }) : ctx.options.enableSynthetic === true ? unconfiguredCollector("synthetic", syntheticAccount || "unselected") : unsupportedCollector("synthetic", syntheticAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
