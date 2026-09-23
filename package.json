@@ -1,0 +1,25 @@
+{
+  "name": "opencode-quota",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only quota observations for OpenCode V2",
+  "exports": {
+    ".": "./dist/core.js",
+    "./collectors": "./dist/collectors.js",
+    "./plugin": "./dist/plugin.js",
+    "./rpc": "./dist/rpc.js"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "bun build src/core.ts src/collectors.ts src/plugin.ts src/rpc.ts --outdir dist --target=node --format=esm --external @opencode/plugin",
+    "check": "bun run typecheck && bun test && bun run build"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.15"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.2",
+    "typescript": "7.0.2"
+  }
+}

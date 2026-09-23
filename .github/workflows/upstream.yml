@@ -1,0 +1,17 @@
+name: Review CodexBar upstream
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 9 * * 1'
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Compare reviewed paths
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun scripts/compare-upstream.ts

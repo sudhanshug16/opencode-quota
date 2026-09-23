@@ -1,0 +1,15 @@
+{
+  "repository": "steipete/CodexBar",
+  "reviewedSha": "efaee7a372139beaf93b4206c08865d750b60e7c",
+  "license": "MIT",
+  "licenseUrl": "https://github.com/steipete/CodexBar/blob/efaee7a372139beaf93b4206c08865d750b60e7c/LICENSE",
+  "reviewedPaths": [
+    "docs/opencode.md",
+    "Sources/CodexBarCore/Providers/OpenCodeGo/OpenCodeGoUsageFetcher.swift",
+    "Sources/CodexBarCore/Providers/OpenCodeGo/OpenCodeGoUsageSnapshot.swift",
+    "Tests/CodexBarTests/OpenCodeGoUsageParserTests.swift",
+    "Sources/CodexBarCore/Providers/Codex/CodexOAuth/CodexOAuthUsageFetcher.swift",
+    "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
+  ],
+  "note": "Reviewed Go API path and whole-percent interpretation; source was not vendored. Review changes before advancing this pin."
+}
