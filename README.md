@@ -10,10 +10,11 @@ Read-only quota observations for OpenCode V2 and portable TypeScript consumers. 
 | OpenRouter | Key cap and credits API collectors with mocked transport tests; no live account proof. Management Activity remains unported | Opt-in existing `openrouter` key connection with explicit `openRouterAccountLabel`, or caller-supplied key callback | Key spending cap/window and separate account credits; key spend counters |
 | DeepSeek | API balance collector with mocked transport tests; web platform spend history unported | Opt-in existing `deepseek` key connection with explicit `deepSeekAccountLabel`, or caller-supplied key callback | Paid/granted balance and availability; no synthetic percent quota |
 | Moonshot | Regional API balance collector with mocked transport tests | Opt-in existing `moonshotai` key connection with explicit `moonshotAccountLabel` and `moonshotRegion`, or caller-supplied key callback | Available/cash/voucher balances and cash deficit; no synthetic quota |
+| z.ai Coding Plan | Quota API collector with mocked personal/team fixtures; model history and CN balance unported | Opt-in existing `zai-coding-plan` key connection with explicit `zaiAccountLabel`, `zaiRegion` and `zaiScope: "personal"`; portable callback also accepts explicit team organization/project | Credit/token/MCP lanes and plausible resets; no inferred model route mapping |
 | Codex subscription | Explicit `unsupported` observation | None in this MVP | None |
 | Claude subscription | Explicit `unsupported` observation | None in this MVP | None |
 
-The implemented collectors do not read cookies, browser stores, keychains or local provider databases. An API or auth error reports `unavailable` with no windows; unknown is never zero. Go percentages are in whole-percent units (`1` = 1%, `0.5` = 0.5%). These are percentages, **not** dollar amounts or request counts. Missing resets remain absent. No model-to-pool mapping is inferred. The [pinned 81-provider/135-strategy inventory](docs/parity.json) records remaining auth routes, fields, platform constraints and gaps; source inventory is not implementation support. The port currently supports 5 of those 135 strategy entries across 4 providers; 130 strategy entries remain unported. Native menu-bar, widgets, notifications, settings and update UI are inventoried separately in that manifest and out of this TypeScript/OpenCode plugin surface.
+The implemented collectors do not read cookies, browser stores, keychains or local provider databases. An API or auth error reports `unavailable` with no windows; unknown is never zero. Go percentages are in whole-percent units (`1` = 1%, `0.5` = 0.5%). These are percentages, **not** dollar amounts or request counts. Missing resets remain absent. No model-to-pool mapping is inferred. The [pinned 81-provider/137-normalized-route inventory](docs/parity.json) records remaining auth routes, fields, platform constraints and gaps; source inventory is not implementation support. The port currently supports 6 of those 137 route entries across 5 providers; 131 route entries remain unported. Native menu-bar, widgets, notifications, settings and update UI are inventoried separately in that manifest and out of this TypeScript/OpenCode plugin surface.
 
 ## Portable API
 
@@ -22,6 +23,7 @@ import { goCollector } from "opencode-quota/collectors"
 import { openRouterCollector } from "opencode-quota/openrouter"
 import { deepSeekCollector } from "opencode-quota/deepseek"
 import { moonshotCollector } from "opencode-quota/moonshot"
+import { zaiCollector } from "opencode-quota/zai"
 import { QuotaReader } from "opencode-quota"
 
 const reader = new QuotaReader([
@@ -29,6 +31,7 @@ const reader = new QuotaReader([
   openRouterCollector({ account: "selected-openrouter-account", apiKey: async () => process.env.OPENROUTER_API_KEY }),
   deepSeekCollector({ account: "selected-deepseek-account", apiKey: async () => process.env.DEEPSEEK_API_KEY }),
   moonshotCollector({ account: "selected-moonshot-account", region: "global", apiKey: async () => process.env.MOONSHOT_API_KEY }),
+  zaiCollector({ account: "selected-zai-account", region: "global", scope: { kind: "personal" }, apiKey: async () => process.env.Z_AI_API_KEY }),
 ])
 try {
   console.log(JSON.stringify(await reader.read(), null, 2))
@@ -50,7 +53,7 @@ Build with `bun install && bun run build`. The plugin entry is `./dist/plugin.js
 }
 ```
 
-No installation or config edit is performed by this repo. `enableGo`, `enableOpenRouter`, `enableDeepSeek` and `enableMoonshot` default to false. To enable the last three, set its `enable...` option to true and provide its non-empty `...AccountLabel`; Moonshot also requires `moonshotRegion: "global" | "china"`. The plugin uses only that provider's active existing **key** connection. The Go path uses only the active `opencode-go` key connection. OAuth and absent credentials yield unavailable. It does not export credentials or initiate authentication. The RPC returns `{ observations: Observation[] }`; its definition is exported from `opencode-quota/rpc` for [`@opencode/client` callers](https://opencode.ai/v2/docs/build/plugins/rpc). Plugin unload disposes the RPC and reader.
+No installation or config edit is performed by this repo. `enableGo`, `enableOpenRouter`, `enableDeepSeek`, `enableMoonshot` and `enableZai` default to false. To enable the last four, set its `enable...` option to true and provide its non-empty `...AccountLabel`; Moonshot also requires `moonshotRegion: "global" | "china"`, and z.ai requires `zaiRegion: "global" | "bigmodel-cn"` and `zaiScope: "personal"`. The plugin uses only that provider's active existing **key** connection. The Go path uses only the active `opencode-go` key connection. OAuth and absent credentials yield unavailable. It does not export credentials or initiate authentication. The RPC returns `{ observations: Observation[] }`; its definition is exported from `opencode-quota/rpc` for [`@opencode/client` callers](https://opencode.ai/v2/docs/build/plugins/rpc). Plugin unload disposes the RPC and reader.
 
 The package is source-only and not published to npm. A Node consumer can import the built ESM artifacts with dependencies installed; Bun is used for project development and CI.
 

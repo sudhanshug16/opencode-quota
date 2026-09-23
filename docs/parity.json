@@ -22,7 +22,7 @@
     {"id":"antigravity","source":"Antigravity/","strategies":["local-language-server","agy-cli","google-oauth","offline"],"auth":"app/IDE, CLI or OAuth","fields":"model quotas/tier; offline degraded","platform":"app/CLI host dependent"},
     {"id":"copilot","source":"Copilot/","strategies":["github-api"],"auth":"GitHub device-flow/configured token","fields":"premium requests/allowance/reset","platform":"portable HTTP; token scope conditional"},
     {"id":"devin","source":"Devin/","strategies":["web-local-storage","manual-bearer"],"auth":"Chromium session plus organization or bearer","fields":"daily/weekly quota/reset","platform":"browser local storage host dependent"},
-    {"id":"zai","source":"Zai/","strategies":["api"],"auth":"API token","fields":"Coding Plan quota/reset","platform":"global/China hosts"},
+    {"id":"zai","source":"Zai/","strategies":["quota-api","model-usage-api","cn-balance-api"],"auth":"API token; explicit personal/team scope","fields":"Coding Plan quota/reset, model usage, optional CN balance","platform":"global/China hosts; team requires organization and project","supported":["quota-api"],"fixture":"test/zai.test.ts"},
     {"id":"minimax","source":"MiniMax/","strategies":["web","api"],"auth":"session or API token","fields":"plan quota/reset, optional billing tokens","platform":"regional hosts; cookie import host dependent"},
     {"id":"manus","source":"Manus/","strategies":["web"],"auth":"session cookie/environment","fields":"credits/account","platform":"cookie import host dependent"},
     {"id":"kimi","source":"Kimi/","strategies":["api","web-cookie","cli-credential"],"auth":"Kimi Code key or session","fields":"five-hour/weekly quota/reset","platform":"browser/CLI host dependent"},
