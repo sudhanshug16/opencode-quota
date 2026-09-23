@@ -81,7 +81,7 @@
     {"id":"replicate","source":"Replicate/","strategies":["web"],"auth":"Chrome/manual cookie","fields":"monthly spend/prepaid credits","platform":"browser import host dependent"},
     {"id":"huggingface","source":"HuggingFace/","strategies":["api"],"auth":"access token","fields":"Inference charges/ZeroGPU quota","platform":"portable HTTP"},
     {"id":"pi","source":"Pi/","strategies":["local-transcript"],"auth":"local Pi/OMP transcript","fields":"estimated API-rate cost; no quota","platform":"local files host dependent"},
-    {"id":"v0","source":"V0/","strategies":["api"],"auth":"key/optional project","fields":"billing/rate limits","platform":"portable HTTP"},
+    {"id":"v0","source":"V0/","strategies":["api"],"auth":"key/optional project","fields":"billing/rate limits","platform":"portable HTTP; billing permission/scope conditional","supported":["api"],"fixture":"test/v0.test.ts"},
     {"id":"typesafe","source":"TypeSafe/","strategies":["web"],"auth":"Chrome/manual cookie","fields":"spend/credit balance","platform":"browser import host dependent"},
     {"id":"hyper","source":"Hyper/","strategies":["web","api"],"auth":"session or API key","fields":"HC balance","platform":"browser import host dependent"},
     {"id":"gitkraken","source":"GitKraken/","strategies":["api"],"auth":"token/optional organization","fields":"weekly credits/shared pool","platform":"account/organization scope"},

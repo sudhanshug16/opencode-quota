@@ -5,7 +5,7 @@
     "storedCredentialCandidate": {
       "meaning": "A distinct balance, quota, spend or usage fact may be obtainable using an exact selected OpenCode key or OAuth connection. Endpoint permission/audience, plan and region must be checked; no live compatibility claim.",
       "routes": [
-        "codex:oauth-extras", "alibaba:api-fallback", "zai:model-usage-api", "zai:cn-balance-api", "minimax:api", "kilo:api", "synthetic:api", "venice:api-balance", "chutes:quota-api", "neuralwatt:api", "huggingface:api", "v0:api", "hyper:api"
+        "codex:oauth-extras", "alibaba:api-fallback", "zai:model-usage-api", "zai:cn-balance-api", "minimax:api", "kilo:api", "synthetic:api", "venice:api-balance", "chutes:quota-api", "neuralwatt:api", "huggingface:api", "hyper:api"
       ]
     },
     "privilegedOrPlatformCredential": {

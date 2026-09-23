@@ -14,6 +14,7 @@ import { deepInfraCollector } from "./deepinfra.js"
 import { clinePassCollector } from "./clinepass.js"
 import { kimiCollector } from "./kimi.js"
 import { chutesCollector } from "./chutes.js"
+import { v0Collector } from "./v0.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -52,6 +53,9 @@ export default Plugin.define({
     const kimiRegion = ctx.options.kimiRegion === "china" || ctx.options.kimiRegion === "international" ? ctx.options.kimiRegion : undefined
     const chutesId = selectedId(ctx.options.chutesConnectionId)
     const chutesAccount = selectedId(ctx.options.chutesAccountLabel)
+    const v0Id = selectedId(ctx.options.v0ConnectionId)
+    const v0Account = selectedId(ctx.options.v0AccountLabel)
+    const v0Scope = selectedId(ctx.options.v0Scope)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -116,6 +120,9 @@ export default Plugin.define({
       ctx.options.enableChutes === true && chutesId && chutesAccount ? chutesCollector({
         account: chutesAccount, apiKey: () => selectedKey("chutes", chutesId),
       }) : ctx.options.enableChutes === true ? unconfiguredCollector("chutes", chutesAccount || "unselected") : unsupportedCollector("chutes", chutesAccount || "unselected"),
+      ctx.options.enableV0 === true && v0Id && v0Account && (!v0Scope || v0Scope.length <= 120 && !/[\r\n]/.test(v0Scope)) ? v0Collector({
+        account: v0Account, scope: v0Scope || undefined, apiKey: () => selectedKey("v0", v0Id),
+      }) : ctx.options.enableV0 === true ? unconfiguredCollector("v0", v0Account || "unselected") : unsupportedCollector("v0", v0Account || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),

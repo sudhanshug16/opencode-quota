@@ -20,6 +20,7 @@
     "Sources/CodexBarCore/Providers/Kimi/KimiRegion.swift",
     "Sources/CodexBarCore/Providers/Chutes/ChutesUsageStats.swift",
     "Tests/CodexBarTests/ChutesProviderTests.swift",
+    "Sources/CodexBarCore/Resources/Plugins/v0.ts",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [
