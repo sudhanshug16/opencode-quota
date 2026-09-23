@@ -71,6 +71,8 @@ No installation or config edit is performed by this repo. All `enable...` option
 
 Venice additionally requires `enableVenice: true`, `veniceConnectionId` and `veniceAccountLabel`. Hyper requires `enableHyper: true`, `hyperConnectionId` and `hyperAccountLabel`. Hugging Face requires `enableHuggingFace: true`, `huggingFaceConnectionId` and `huggingFaceAccountLabel`; Billing read may require a classic read token or fine-grained billing permission. Neuralwatt requires `enableNeuralwatt: true`, `neuralwattConnectionId` and `neuralwattAccountLabel`; its quota endpoint is fixed to the pinned catalog API host. All four are selected key connections; browser sessions are separate routes.
 
+The [privileged/cloud credential matrix](docs/privileged-credentials.md) lists the exact SDK-resolved credential shape and the additional account, project and permission requirements for eleven other routes. Six alias mappings remain unresolved without verified billing-pool identity.
+
 The package is source-only and not published to npm. A Node consumer can import the built ESM artifacts with dependencies installed; Bun is used for project development and CI.
 
 ## Development
