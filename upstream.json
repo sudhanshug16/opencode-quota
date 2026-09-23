@@ -23,6 +23,7 @@
     "Sources/CodexBarCore/Resources/Plugins/v0.ts",
     "Sources/CodexBarCore/Resources/Plugins/venice.js",
     "Sources/CodexBarCore/Resources/Plugins/hyper.ts",
+    "Sources/CodexBarCore/Resources/Plugins/huggingface.ts",
     "Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/ClaudeOAuthUsageFetcher.swift"
   ],
   "reviewedPrefixes": [

@@ -17,6 +17,7 @@ import { chutesCollector } from "./chutes.js"
 import { v0Collector } from "./v0.js"
 import { veniceCollector } from "./venice.js"
 import { hyperCollector } from "./hyper.js"
+import { huggingFaceCollector } from "./huggingface.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -62,6 +63,8 @@ export default Plugin.define({
     const veniceAccount = selectedId(ctx.options.veniceAccountLabel)
     const hyperId = selectedId(ctx.options.hyperConnectionId)
     const hyperAccount = selectedId(ctx.options.hyperAccountLabel)
+    const hfId = selectedId(ctx.options.huggingFaceConnectionId)
+    const hfAccount = selectedId(ctx.options.huggingFaceAccountLabel)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -135,6 +138,9 @@ export default Plugin.define({
       ctx.options.enableHyper === true && hyperId && hyperAccount ? hyperCollector({
         account: hyperAccount, apiKey: () => selectedKey("hyper", hyperId),
       }) : ctx.options.enableHyper === true ? unconfiguredCollector("hyper", hyperAccount || "unselected") : unsupportedCollector("hyper", hyperAccount || "unselected"),
+      ctx.options.enableHuggingFace === true && hfId && hfAccount ? huggingFaceCollector({
+        account: hfAccount, apiKey: () => selectedKey("huggingface", hfId),
+      }) : ctx.options.enableHuggingFace === true ? unconfiguredCollector("huggingface", hfAccount || "unselected") : unsupportedCollector("huggingface", hfAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),

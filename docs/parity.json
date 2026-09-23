@@ -79,7 +79,7 @@
     {"id":"muse","source":"Muse/","strategies":["cli-oauth"],"auth":"existing CLI device login","fields":"five-hour/weekly quotas","platform":"CLI login host dependent"},
     {"id":"coderabbit","source":"CodeRabbit/","strategies":["cli-report"],"auth":"local CLI","fields":"review counts/billing state; no quota","platform":"CLI host dependent"},
     {"id":"replicate","source":"Replicate/","strategies":["web"],"auth":"Chrome/manual cookie","fields":"monthly spend/prepaid credits","platform":"browser import host dependent"},
-    {"id":"huggingface","source":"HuggingFace/","strategies":["api"],"auth":"access token","fields":"Inference charges/ZeroGPU quota","platform":"portable HTTP"},
+    {"id":"huggingface","source":"HuggingFace/","strategies":["api"],"auth":"access token","fields":"Inference charges/ZeroGPU quota; web wallet separate","platform":"portable HTTP; billing-read scope conditional","supported":["api"],"fixture":"test/huggingface.test.ts"},
     {"id":"pi","source":"Pi/","strategies":["local-transcript"],"auth":"local Pi/OMP transcript","fields":"estimated API-rate cost; no quota","platform":"local files host dependent"},
     {"id":"v0","source":"V0/","strategies":["api"],"auth":"key/optional project","fields":"billing/rate limits","platform":"portable HTTP; billing permission/scope conditional","supported":["api"],"fixture":"test/v0.test.ts"},
     {"id":"typesafe","source":"TypeSafe/","strategies":["web"],"auth":"Chrome/manual cookie","fields":"spend/credit balance","platform":"browser import host dependent"},
