@@ -7,6 +7,7 @@ import { deepSeekCollector } from "./deepseek.js"
 import { moonshotCollector } from "./moonshot.js"
 import { zaiCollector } from "./zai.js"
 import { fireworksCollector } from "./fireworks.js"
+import { codexAccess, codexCollector } from "./codex.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -29,6 +30,9 @@ export default Plugin.define({
     const fireworksId = selectedId(ctx.options.fireworksConnectionId)
     const fireworksAccount = selectedId(ctx.options.fireworksAccountLabel)
     const fireworksSlug = selectedId(ctx.options.fireworksAccountSlug)
+    const codexId = selectedId(ctx.options.codexConnectionId)
+    const codexAccount = selectedId(ctx.options.codexAccountLabel)
+    const codexAccountId = selectedId(ctx.options.codexAccountId)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -45,7 +49,6 @@ export default Plugin.define({
           return credential?.type === "key" ? credential.key : undefined
         },
       }) : unsupportedCollector("opencode-go", account),
-      unsupportedCollector("codex"),
       unsupportedCollector("claude"),
       ctx.options.enableOpenRouter === true && openRouterAccount && openRouterId ? openRouterCollector({
         account: openRouterAccount,
@@ -66,6 +69,15 @@ export default Plugin.define({
       ctx.options.enableFireworks === true && fireworksId && fireworksAccount && /^[a-zA-Z0-9._-]+$/.test(fireworksSlug) ? fireworksCollector({
         account: fireworksAccount, accountSlug: fireworksSlug, apiKey: () => selectedKey("fireworks-ai", fireworksId),
       }) : ctx.options.enableFireworks === true ? unconfiguredCollector("fireworks", fireworksAccount || "unselected") : unsupportedCollector("fireworks", fireworksAccount || "unselected"),
+      ctx.options.enableCodex === true && codexId && codexAccount && codexAccountId ? codexCollector({
+        account: codexAccount, accountId: codexAccountId,
+        accessToken: async () => {
+          const connection = await ctx.integration.connection.active("openai")
+          if (connection?.type !== "credential" || connection.id !== codexId || connection.method !== "oauth") return undefined
+          const credential = await ctx.integration.connection.resolve(connection)
+          return codexAccess(credential, codexAccountId)
+        },
+      }) : ctx.options.enableCodex === true ? unconfiguredCollector("codex", codexAccount || "unselected") : unsupportedCollector("codex", codexAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
