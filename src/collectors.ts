@@ -71,3 +71,8 @@ export function goCollector(options: GoOptions): Collector {
 export function unsupportedCollector(provider: string, account = "unknown"): Collector {
   return { id: provider, async collect() { return unavailable({ provider, account, pool: "unknown", routes: [], source: "none" }, "unsupported") } }
 }
+
+/** Enabled provider with an incomplete explicit account/source selection. */
+export function unconfiguredCollector(provider: string, account = "unselected"): Collector {
+  return { id: provider, async collect() { return unavailable({ provider, account, pool: "unknown", routes: [], source: "none" }, "not_configured") } }
+}

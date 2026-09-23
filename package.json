@@ -17,7 +17,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/deepseek.ts src/moonshot.ts src/zai.ts src/plugin.ts src/rpc.ts --outdir dist --target=node --format=esm --external @opencode/plugin",
+    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/deepseek.ts src/moonshot.ts src/zai.ts src/plugin.ts src/rpc.ts --root src --outdir dist --target=node --format=esm --external @opencode/plugin",
     "check": "bun run typecheck && bun test && bun run build"
   },
   "dependencies": {
