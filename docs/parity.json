@@ -47,7 +47,7 @@
     {"id":"sakana","source":"Sakana/","strategies":["web"],"auth":"manual Cookie header","fields":"quota windows, PAYG balance/spend","platform":"manual cookie portable"},
     {"id":"abacus","source":"Abacus/","strategies":["web"],"auth":"browser/manual cookies","fields":"compute points/credits/balance","platform":"browser import host dependent"},
     {"id":"mistral","source":"Mistral/","strategies":["web-admin","web-console-fallback"],"auth":"ory_session and CSRF cookies","fields":"monthly allowance/credits/reset/cost","platform":"browser import host dependent"},
-    {"id":"deepseek","source":"DeepSeek/","strategies":["api-balance","web-platform"],"auth":"API key or browser session","fields":"paid/granted balance; optional model spend","platform":"browser import host dependent"},
+    {"id":"deepseek","source":"DeepSeek/","strategies":["api-balance","web-platform"],"auth":"API key or browser session","fields":"paid/granted balance; optional model spend","platform":"browser import host dependent","supported":["api-balance"],"fixture":"test/deepseek.test.ts"},
     {"id":"deepinfra","source":"DeepInfra/","strategies":["api"],"auth":"API key","fields":"balance/spend/limit/suspension","platform":"portable HTTP"},
     {"id":"codebuff","source":"Codebuff/","strategies":["api","login-file"],"auth":"key or CLI login file","fields":"credits/weekly limit/reset","platform":"CLI file host dependent"},
     {"id":"venice","source":"Venice/","strategies":["api-balance","web-subscription"],"auth":"API key or distinct web account cookie","fields":"API balance/epoch; web credits/spend/refill","platform":"browser import host dependent"},

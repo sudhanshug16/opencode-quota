@@ -9,12 +9,13 @@
     "./collectors": "./dist/collectors.js",
     "./contracts": "./dist/contracts.js",
     "./openrouter": "./dist/openrouter.js",
+    "./deepseek": "./dist/deepseek.js",
     "./plugin": "./dist/plugin.js",
     "./rpc": "./dist/rpc.js"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/plugin.ts src/rpc.ts --outdir dist --target=node --format=esm --external @opencode/plugin",
+    "build": "bun build src/core.ts src/contracts.ts src/collectors.ts src/openrouter.ts src/deepseek.ts src/plugin.ts src/rpc.ts --outdir dist --target=node --format=esm --external @opencode/plugin",
     "check": "bun run typecheck && bun test && bun run build"
   },
   "dependencies": {
