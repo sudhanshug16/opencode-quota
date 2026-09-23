@@ -17,7 +17,7 @@
     {"id":"alibabatokenplan","source":"Alibaba/","strategies":["bl-cli","web-console"],"auth":"Bailian CLI or cookies","fields":"plan windows/reset","platform":"CLI/browser host dependent; regional hosts"},
     {"id":"qwencloud","source":"QwenCloud/","strategies":["web"],"auth":"browser/manual cookie and sec_token","fields":"windows/reset/tier/credits","platform":"cookie import host dependent"},
     {"id":"factory","source":"Factory/","strategies":["api","web-cookie","stored-token","workos-session"],"auth":"key or session","fields":"subscription limits","platform":"browser/session host dependent"},
-    {"id":"fireworks","source":"Fireworks/","strategies":["api"],"auth":"API key and account slug","fields":"30-day spend","platform":"portable HTTP; account selector required"},
+    {"id":"fireworks","source":"Fireworks/","strategies":["billing-summary","account-discovery"],"auth":"API key and account slug","fields":"30-day spend","platform":"portable HTTP; account selector required","supported":["billing-summary"],"fixture":"test/fireworks.test.ts"},
     {"id":"gemini","source":"Gemini/","strategies":["cli-oauth"],"auth":"Gemini CLI OAuth","fields":"model quota/tier","platform":"CLI login host dependent"},
     {"id":"antigravity","source":"Antigravity/","strategies":["local-language-server","agy-cli","google-oauth","offline"],"auth":"app/IDE, CLI or OAuth","fields":"model quotas/tier; offline degraded","platform":"app/CLI host dependent"},
     {"id":"copilot","source":"Copilot/","strategies":["github-api"],"auth":"GitHub device-flow/configured token","fields":"premium requests/allowance/reset","platform":"portable HTTP; token scope conditional"},

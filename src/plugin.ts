@@ -6,6 +6,7 @@ import { openRouterCollector } from "./openrouter.js"
 import { deepSeekCollector } from "./deepseek.js"
 import { moonshotCollector } from "./moonshot.js"
 import { zaiCollector } from "./zai.js"
+import { fireworksCollector } from "./fireworks.js"
 
 /** Opt-in only. Access to an existing OpenCode connection occurs only on observation requests. */
 export default Plugin.define({
@@ -25,6 +26,9 @@ export default Plugin.define({
     const deepSeekId = selectedId(ctx.options.deepSeekConnectionId)
     const moonshotId = selectedId(ctx.options.moonshotConnectionId)
     const zaiId = selectedId(ctx.options.zaiConnectionId)
+    const fireworksId = selectedId(ctx.options.fireworksConnectionId)
+    const fireworksAccount = selectedId(ctx.options.fireworksAccountLabel)
+    const fireworksSlug = selectedId(ctx.options.fireworksAccountSlug)
     const selectedKey = async (integration: string, id: string): Promise<string | undefined> => {
       const connection = await ctx.integration.connection.active(integration)
       if (connection?.type !== "credential" || connection.id !== id || connection.method !== "key") return undefined
@@ -59,6 +63,9 @@ export default Plugin.define({
         account: zaiAccount, region: zaiRegion, scope: zaiScope,
         apiKey: () => selectedKey("zai-coding-plan", zaiId),
       }) : ctx.options.enableZai === true ? unconfiguredCollector("zai", zaiAccount || "unselected") : unsupportedCollector("zai", zaiAccount || "unselected"),
+      ctx.options.enableFireworks === true && fireworksId && fireworksAccount && /^[a-zA-Z0-9._-]+$/.test(fireworksSlug) ? fireworksCollector({
+        account: fireworksAccount, accountSlug: fireworksSlug, apiKey: () => selectedKey("fireworks-ai", fireworksId),
+      }) : ctx.options.enableFireworks === true ? unconfiguredCollector("fireworks", fireworksAccount || "unselected") : unsupportedCollector("fireworks", fireworksAccount || "unselected"),
     ])
     const registration = await ctx.rpc.register(QuotaRpc, {
       observations: async (_input, context) => ({ observations: await reader.read(context.signal) }),
